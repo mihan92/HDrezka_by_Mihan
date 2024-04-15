@@ -14,6 +14,7 @@ fun MovieLibraryTheme(
 ) {
     val colorScheme = darkColorScheme(
         primary = selectedColor.primaryColor,
+        onPrimary = selectedColor.onPrimaryColor,
         secondary = secondaryColor,
         background = backgroundColor,
         onBackground = onBackgroundColor

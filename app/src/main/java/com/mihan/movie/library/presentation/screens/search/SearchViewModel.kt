@@ -2,7 +2,8 @@ package com.mihan.movie.library.presentation.screens.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mihan.movie.library.common.DtoState
+import com.mihan.movie.library.common.ApiResponse
+import com.mihan.movie.library.common.listeners.EventManager
 import com.mihan.movie.library.common.utils.VoiceRecognizer
 import com.mihan.movie.library.domain.usecases.GetVideosByTitleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val voiceRecognizer: VoiceRecognizer,
-    private val getVideosByTitleUseCase: GetVideosByTitleUseCase
+    private val getVideosByTitleUseCase: GetVideosByTitleUseCase,
+    private val eventManager: EventManager
 ) : ViewModel() {
     private val _screenState = MutableStateFlow(SearchScreenState())
 
@@ -32,16 +34,19 @@ class SearchViewModel @Inject constructor(
         voiceRecognizer.stopListening()
     }
 
-    fun buttonSearchPressed(searchngText: String) {
-        if (searchngText.isNotEmpty()) {
+    fun buttonSearchPressed(searchingText: String) {
+        if (searchingText.isNotEmpty()) {
             viewModelScope.launch {
-                getVideosByTitleUseCase(searchngText)
-                    .onEach { state ->
-                        when (state) {
-                            is DtoState.Error -> _screenState.update { it.copy(error = state.errorMessage) }
-                            is DtoState.Loading -> _screenState.update { it.copy(isLoading = true) }
-                            is DtoState.Success ->
-                                _screenState.update { it.copy(isLoading = false, listOfVideo = state.data) }
+                getVideosByTitleUseCase(searchingText)
+                    .onEach { result ->
+                        when (result) {
+                            is ApiResponse.Error -> {
+                                _screenState.update { it.copy(isLoading = false) }
+                                eventManager.sendEvent(result.errorMessage)
+                            }
+                            is ApiResponse.Loading -> _screenState.update { it.copy(isLoading = true) }
+                            is ApiResponse.Success ->
+                                _screenState.update { it.copy(isLoading = false, listOfVideo = result.data) }
                         }
                     }.last()
                 voiceRecognizer.resetState()

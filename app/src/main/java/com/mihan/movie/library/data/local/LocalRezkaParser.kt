@@ -52,6 +52,7 @@ class LocalRezkaParser @Inject constructor(
         .ignoreContentType(true)
         .header(APP_HEADER, REQUEST_HEADER_ENABLE_METADATA_VALUE)
         .timeout(CONNECTION_TIMEOUT)
+        .followRedirects(true)
 
     private suspend fun getUrl(page: Int, section: String, genre: String): String {
         return if (page > 1)
@@ -177,6 +178,7 @@ class LocalRezkaParser @Inject constructor(
         val mapOfTranslations = mutableMapOf<String, String>()
         val translators = document.select(".b-translator__item")
         for (element in translators) {
+            if (element.hasClass("b-prem_translator")) continue
             val country = element.select("img").attr("alt")
             var name = element.attr("title")
             val translatorId = element.attr("data-translator_id")

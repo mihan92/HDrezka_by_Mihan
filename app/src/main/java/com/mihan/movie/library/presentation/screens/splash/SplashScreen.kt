@@ -1,6 +1,5 @@
 package com.mihan.movie.library.presentation.screens.splash
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,12 +55,8 @@ fun SplashScreen(
             fontWeight = FontWeight.W700
         )
     }
-    if (screenState.success)
+    if (screenState.toNextScreen)
         navigateToNextScreen(navigator)
-    if (screenState.errorMessage.isNotEmpty()) {
-        navigateToNextScreen(navigator)
-        Toast.makeText(LocalContext.current, screenState.errorMessage, Toast.LENGTH_LONG).show()
-    }
 }
 
 fun navigateToNextScreen(navigator: DestinationsNavigator) {

@@ -1,7 +1,6 @@
 package com.mihan.movie.library.domain.usecases
 
-import com.mihan.movie.library.common.DtoState
-import com.mihan.movie.library.common.extentions.logger
+import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.data.models.toBaseUrlModel
 import com.mihan.movie.library.domain.ParserRepository
 import com.mihan.movie.library.domain.models.BaseUrlModel
@@ -11,13 +10,11 @@ import javax.inject.Inject
 
 class GetBaseUrlUseCase @Inject constructor(private val parserRepository: ParserRepository) {
 
-    suspend operator fun invoke(): Flow<DtoState<BaseUrlModel>> = flow {
-        try {
-            val baseUrl = parserRepository.getBaseUrl().toBaseUrlModel()
-            emit(DtoState.Success(baseUrl))
-        } catch (e: Exception) {
-            logger("GetBaseUrlUseCase Error ${e.message}")
-            emit(DtoState.Error(e.message ?: "GetBaseUrlUseCase Error"))
+    suspend operator fun invoke(): Flow<ApiResponse<BaseUrlModel>> = flow {
+        when(val result = parserRepository.getBaseUrl()) {
+            is ApiResponse.Loading -> Unit
+            is ApiResponse.Error -> emit(ApiResponse.Error(result.errorMessage))
+            is ApiResponse.Success -> emit(ApiResponse.Success(result.data.toBaseUrlModel()))
         }
     }
 }

@@ -54,4 +54,6 @@
     <string name="add_to_favourites_title">Добавить в избранное</string>
     <string name="delete_from_favourites_title">Удалить из избранного</string>
     <string name="favourites_screen_placeholder">Список избранного пустой</string>
+    <string name="auto_update_title">Автообновление сайта</string>
+    <string name="auto_update_description">Автоматическое обновление зеркала HdRezka</string>
 </resources>

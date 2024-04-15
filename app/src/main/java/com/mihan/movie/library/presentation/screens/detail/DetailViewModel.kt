@@ -6,10 +6,11 @@ import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.common.Constants.EMPTY_STRING
 import com.mihan.movie.library.common.DataStorePrefs
-import com.mihan.movie.library.common.DtoState
 import com.mihan.movie.library.common.extentions.logger
+import com.mihan.movie.library.common.listeners.EventManager
 import com.mihan.movie.library.common.utils.whileUiSubscribed
 import com.mihan.movie.library.domain.models.FavouritesModel
 import com.mihan.movie.library.domain.models.SeasonModel
@@ -51,7 +52,8 @@ class DetailViewModel @Inject constructor(
     private val getFavoriteByIdUseCase: GetFavoriteByIdUseCase,
     private val addToFavouritesUseCase: AddToFavouritesUseCase,
     private val deleteFromFavouritesUseCase: DeleteFromFavouritesUseCase,
-    dataStorePrefs: DataStorePrefs,
+    private val eventManager: EventManager,
+    private val dataStorePrefs: DataStorePrefs,
     savedStateHandle: SavedStateHandle,
     application: Application
 ) : AndroidViewModel(application) {
@@ -85,30 +87,30 @@ class DetailViewModel @Inject constructor(
     fun getTranslations() {
         viewModelScope.launch {
             getTranslationsByUrlUseCase(navArgs.movieUrl)
-                .onEach { state ->
-                    when (state) {
-                        is DtoState.Error -> _screenState.value = DetailScreenState(
-                            detailInfo = _screenState.value.detailInfo,
-                            errorMessage = state.errorMessage
-                        )
+                .onEach { result ->
+                    when (result) {
+                        is ApiResponse.Error -> {
+                            _screenState.value = DetailScreenState(detailInfo = _screenState.value.detailInfo)
+                            eventManager.sendEvent(result.errorMessage)
+                        }
 
-                        is DtoState.Loading -> _screenState.value = DetailScreenState(
+                        is ApiResponse.Loading -> _screenState.value = DetailScreenState(
                             detailInfo = _screenState.value.detailInfo,
                             isLoading = true
                         )
 
-                        is DtoState.Success -> {
+                        is ApiResponse.Success -> {
                             _screenState.value = DetailScreenState(detailInfo = _screenState.value.detailInfo)
-                            _videoData.value = state.data!!
-                            _translatorId = state.data.translations.values.first()
-                            _translatorName = state.data.translations.keys.first()
-                            if (state.data.isVideoHasSeries) {
+                            _videoData.value = result.data
+                            _translatorId = result.data.translations.values.first()
+                            _translatorName = result.data.translations.keys.first()
+                            if (result.data.isVideoHasSeries) {
                                 if (_videoHistoryModel.value != null) {
                                     _translatorId = _videoHistoryModel.value?.translatorId!!
                                     _translatorName = _videoHistoryModel.value?.translatorName
                                     getSeasonsByTranslatorId(_videoHistoryModel.value?.translatorId!!)
                                 } else
-                                    getSeasonsByTranslatorId(state.data.translations.values.first())
+                                    getSeasonsByTranslatorId(result.data.translations.values.first())
                             } else
                                 updateData()
                         }
@@ -163,14 +165,18 @@ class DetailViewModel @Inject constructor(
     private fun getVideoDetailInfo() {
         viewModelScope.launch {
             getDetailVideoByUrlUseCase(navArgs.movieUrl)
-                .onEach { state ->
-                    when (state) {
-                        is DtoState.Error -> _screenState.value = DetailScreenState(errorMessage = state.errorMessage)
-                        is DtoState.Loading -> _screenState.value = DetailScreenState(isLoading = true)
-                        is DtoState.Success -> {
-                            _screenState.value = DetailScreenState(detailInfo = state.data)
-                            state.data?.let { data -> getFavourites(data.videoId) }
-                            state.data?.let { data -> getVideoHistoryData(data.videoId) }
+                .onEach { result ->
+                    when (result) {
+                        is ApiResponse.Error -> {
+                            _screenState.value = DetailScreenState(isLoading = false)
+                            eventManager.sendEvent(result.errorMessage)
+                        }
+
+                        is ApiResponse.Loading -> _screenState.value = DetailScreenState(isLoading = true)
+                        is ApiResponse.Success -> {
+                            _screenState.value = DetailScreenState(detailInfo = result.data)
+                            getFavourites(result.data.videoId)
+                            getVideoHistoryData(result.data.videoId)
                         }
                     }
                 }.last()
@@ -216,20 +222,20 @@ class DetailViewModel @Inject constructor(
 
     private suspend fun getStreamsByTranslatorId(translatorId: String) {
         getStreamsByTranslatorIdUseCase(translatorId)
-            .onEach { state ->
-                when (state) {
-                    is DtoState.Error -> _screenState.value = DetailScreenState(
-                        detailInfo = _screenState.value.detailInfo,
-                        errorMessage = state.errorMessage
-                    )
+            .onEach { result ->
+                when (result) {
+                    is ApiResponse.Error -> {
+                        _screenState.value = DetailScreenState(detailInfo = _screenState.value.detailInfo)
+                        eventManager.sendEvent(result.errorMessage)
+                    }
 
-                    is DtoState.Loading -> _screenState.value = DetailScreenState(
+                    is ApiResponse.Loading -> _screenState.value = DetailScreenState(
                         detailInfo = _screenState.value.detailInfo,
                         isLoading = true
                     )
 
-                    is DtoState.Success -> {
-                        state.data?.let { list -> _listOfStreams.update { list } }
+                    is ApiResponse.Success -> {
+                        _listOfStreams.update { result.data }
                         _screenState.value = DetailScreenState(
                             detailInfo = _screenState.value.detailInfo,
                             isLoading = false
@@ -242,16 +248,16 @@ class DetailViewModel @Inject constructor(
     private fun getSeasonsByTranslatorId(translatorId: String) {
         viewModelScope.launch {
             getSeasonsByTranslatorIdUseCase(translatorId)
-                .onEach { state ->
-                    when (state) {
-                        is DtoState.Error -> _screenState.value = DetailScreenState(
-                            detailInfo = _screenState.value.detailInfo,
-                            errorMessage = state.errorMessage
-                        )
+                .onEach { result ->
+                    when (result) {
+                        is ApiResponse.Error -> {
+                            _screenState.value = DetailScreenState(detailInfo = _screenState.value.detailInfo)
+                            eventManager.sendEvent(result.errorMessage)
+                        }
 
-                        is DtoState.Loading -> Unit
-                        is DtoState.Success -> {
-                            _listOfSeasons.update { state.data ?: emptyList() }
+                        is ApiResponse.Loading -> Unit
+                        is ApiResponse.Success -> {
+                            _listOfSeasons.update { result.data }
                             updateData()
                         }
                     }
@@ -262,21 +268,21 @@ class DetailViewModel @Inject constructor(
     private fun getStreamsBySeasonId(translationId: String, videoId: String, season: String, episode: String) {
         viewModelScope.launch {
             getStreamsBySeasonIdUseCase(translationId, videoId, season, episode)
-                .onEach { state ->
-                    when (state) {
-                        is DtoState.Error -> _screenState.value = DetailScreenState(
-                            detailInfo = _screenState.value.detailInfo,
-                            errorMessage = state.errorMessage
-                        )
+                .onEach { result ->
+                    when (result) {
+                        is ApiResponse.Error -> {
+                            _screenState.value = DetailScreenState(detailInfo = _screenState.value.detailInfo)
+                            eventManager.sendEvent(result.errorMessage)
+                        }
 
-                        is DtoState.Loading -> _screenState.value = DetailScreenState(
+                        is ApiResponse.Loading -> _screenState.value = DetailScreenState(
                             detailInfo = _screenState.value.detailInfo,
                             isLoading = true
                         )
 
-                        is DtoState.Success -> {
+                        is ApiResponse.Success -> {
                             _screenState.value = DetailScreenState(detailInfo = _screenState.value.detailInfo)
-                            _listOfStreams.value = state.data ?: emptyList()
+                            _listOfStreams.value = result.data
                         }
                     }
                 }.last()
@@ -293,17 +299,18 @@ class DetailViewModel @Inject constructor(
     private fun sendIntent(selectedStream: List<StreamModel>) {
         viewModelScope.launch {
             try {
-                val context = getApplication<Application>().applicationContext
                 val videoStream =
                     selectedStream.firstOrNull { it.quality == _videoQuality.first().quality } ?: selectedStream.last()
-                val videoPath = videoStream.url
+                val videoUrl = videoStream.url
                 var title = screenState.value.detailInfo?.title
                 if (videoData.value.isVideoHasSeries)
                     title += getSeasonTitle(_seasonAndEpisodeTitle.first, _seasonAndEpisodeTitle.second)
                 title += "  (${videoStream.quality})"
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(videoPath)).apply {
+
+                val context = getApplication<Application>().applicationContext
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(videoUrl)).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    setDataAndType(Uri.parse(videoPath), "video/*")
+                    setDataAndType(Uri.parse(videoUrl), "video/*")
                     putExtra("title", title)
                 }
                 context.startActivity(intent)
@@ -326,10 +333,8 @@ class DetailViewModel @Inject constructor(
 
                 _listOfStreams.update { emptyList() }
             } catch (e: Exception) {
-                _screenState.value = DetailScreenState(
-                    detailInfo = _screenState.value.detailInfo,
-                    errorMessage = e.message.toString()
-                )
+                _screenState.value = DetailScreenState(detailInfo = _screenState.value.detailInfo)
+                eventManager.sendEvent(e.message.toString())
             }
         }
     }

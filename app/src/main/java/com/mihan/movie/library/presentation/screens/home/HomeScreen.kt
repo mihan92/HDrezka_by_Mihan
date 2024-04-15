@@ -1,6 +1,5 @@
 package com.mihan.movie.library.presentation.screens.home
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -19,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.foundation.lazy.grid.TvGridCells
@@ -62,8 +60,6 @@ fun HomeScreen(
         ) {
             if (screenState.isLoading)
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-            if (screenState.errorMessage.isNotEmpty())
-                Toast.makeText(LocalContext.current, screenState.errorMessage, Toast.LENGTH_LONG).show()
             if (screenState.data.isNotEmpty()) {
                 var page = currentPage
                 Content(

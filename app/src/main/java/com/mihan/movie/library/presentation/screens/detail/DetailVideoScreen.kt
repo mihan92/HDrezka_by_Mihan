@@ -78,8 +78,6 @@ fun DetailVideoScreen(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        if (screenState.errorMessage.isNotEmpty())
-            Toast.makeText(context, screenState.errorMessage, Toast.LENGTH_LONG).show()
         screenState.detailInfo?.let { detailModel ->
             Content(
                 videoDetailModel = detailModel,
@@ -288,8 +286,10 @@ private fun ButtonsSection(
                 shape = ButtonDefaults.shape(RoundedCornerShape(size4dp)),
                 onClick = onButtonWatchClick,
                 colors = ButtonDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    contentColor = MaterialTheme.colorScheme.background,
                     focusedContainerColor = MaterialTheme.colorScheme.primary,
-                    containerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                    focusedContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 modifier = modifier
                     .padding(start = size28dp)
@@ -298,15 +298,16 @@ private fun ButtonsSection(
                 Text(
                     text = stringResource(id = R.string.bt_watch).uppercase(),
                     fontWeight = FontWeight.W700,
-                    color = MaterialTheme.colorScheme.background
                 )
             }
             Button(
                 shape = ButtonDefaults.shape(RoundedCornerShape(size4dp)),
                 onClick = onButtonFavouritesClick,
                 colors = ButtonDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    contentColor = MaterialTheme.colorScheme.background,
                     focusedContainerColor = MaterialTheme.colorScheme.primary,
-                    containerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                    focusedContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 modifier = modifier
                     .padding(start = size28dp)
@@ -316,13 +317,11 @@ private fun ButtonsSection(
                     Text(
                         text = stringResource(id = R.string.delete_from_favourites_title).uppercase(),
                         fontWeight = FontWeight.W700,
-                        color = MaterialTheme.colorScheme.background
                     )
                 else
                     Text(
                         text = stringResource(id = R.string.add_to_favourites_title).uppercase(),
                         fontWeight = FontWeight.W700,
-                        color = MaterialTheme.colorScheme.background
                     )
             }
         }
