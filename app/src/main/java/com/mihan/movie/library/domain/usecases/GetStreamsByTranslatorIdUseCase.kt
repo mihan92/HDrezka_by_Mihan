@@ -10,13 +10,14 @@ import javax.inject.Inject
 
 class GetStreamsByTranslatorIdUseCase @Inject constructor(private val parserRepository: ParserRepository) {
     suspend operator fun invoke(
-        translatorId: String
-    ): Flow<ApiResponse<List<StreamModel>>> = flow {
+        translatorId: String,
+        filmId: String
+    ): Flow<ApiResponse<StreamModel>> = flow {
         emit(ApiResponse.Loading)
-        when(val result = parserRepository.getStreamsByTranslatorId(translatorId)) {
+        when(val result = parserRepository.getStreamByTranslatorId(translatorId, filmId)) {
             is ApiResponse.Loading -> Unit
             is ApiResponse.Error -> emit(ApiResponse.Error(result.errorMessage))
-            is ApiResponse.Success -> emit(ApiResponse.Success(result.data.map { it.toStreamModel() }))
+            is ApiResponse.Success -> emit(ApiResponse.Success(result.data.toStreamModel()))
         }
     }
 }

@@ -35,16 +35,6 @@ interface RemoteParserApiService {
     ): Call<VideoDto>
 
     @Headers("Authorization: ${BuildConfig.ACCESS_TOKEN}")
-    @GET("api/listStreamBySeasonId")
-    fun getStreamsBySeasonId(
-        @Query("translatorId") translationId: String,
-        @Query("videoId") videoId: String,
-        @Query("season") season: String,
-        @Query("episode") episode: String,
-        @Query("quality") selectedQuality: String
-    ): Call<List<StreamDto>>
-
-    @Headers("Authorization: ${BuildConfig.ACCESS_TOKEN}")
     @GET("api/listVideoByTitle")
     fun getVideosByTitle(
         @Query("videoTitle") videoTitle: String
@@ -59,11 +49,4 @@ interface RemoteParserApiService {
     @Headers("Authorization: ${BuildConfig.ACCESS_TOKEN}")
     @GET("api/getBaseUrl")
     fun getBaseUrl(): Call<BaseUrlModelDto>
-
-    @Headers("Authorization: ${BuildConfig.ACCESS_TOKEN}")
-    @GET("api/listStreamByTranslatorId")
-    fun getStreamsByTranslatorId(
-        @Query("translatorId") translatorId: String,
-        @Query("quality") selectedQuality: String,
-    ): Call<List<StreamDto>>
 }

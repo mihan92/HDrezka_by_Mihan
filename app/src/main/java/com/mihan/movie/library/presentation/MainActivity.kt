@@ -30,7 +30,7 @@ import com.mihan.movie.library.R
 import com.mihan.movie.library.common.DataStorePrefs
 import com.mihan.movie.library.common.entites.Colors
 import com.mihan.movie.library.common.extentions.logger
-import com.mihan.movie.library.common.listeners.EventManager
+import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.common.utils.AppUpdatesChecker
 import com.mihan.movie.library.presentation.navigation.Screens
 import com.mihan.movie.library.presentation.screens.NavGraphs

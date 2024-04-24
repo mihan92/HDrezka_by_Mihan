@@ -73,7 +73,7 @@ class DataStorePrefs @Inject constructor(@ApplicationContext context: Context) {
 
     fun getRemoteParsing(): Flow<Boolean> =
         dataStore.data.map { prefs ->
-            prefs[REMOTE_PARSING_KEY] ?: true
+            prefs[REMOTE_PARSING_KEY] ?: false
         }
 
     suspend fun setRemoteParsing(isSelected: Boolean) {

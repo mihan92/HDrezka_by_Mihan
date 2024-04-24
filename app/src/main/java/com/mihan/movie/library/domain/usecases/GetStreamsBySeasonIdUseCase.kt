@@ -11,15 +11,15 @@ import javax.inject.Inject
 class GetStreamsBySeasonIdUseCase @Inject constructor(private val parserRepository: ParserRepository) {
     suspend operator fun invoke(
         translationId: String,
-        videoId: String,
+        filmId: String,
         season: String,
         episode: String
-    ): Flow<ApiResponse<List<StreamModel>>> = flow {
+    ): Flow<ApiResponse<StreamModel>> = flow {
         emit(ApiResponse.Loading)
-        when(val result = parserRepository.getStreamsBySeasonId(translationId, videoId, season, episode)) {
+        when(val result = parserRepository.getStreamBySeasonId(translationId, filmId, season, episode)) {
             is ApiResponse.Loading -> Unit
             is ApiResponse.Error -> emit(ApiResponse.Error(result.errorMessage))
-            is ApiResponse.Success -> emit(ApiResponse.Success(result.data.map { it.toStreamModel() }))
+            is ApiResponse.Success -> emit(ApiResponse.Success(result.data.toStreamModel()))
         }
     }
 }

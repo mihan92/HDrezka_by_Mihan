@@ -6,7 +6,7 @@ import com.mihan.movie.library.common.DataStorePrefs
 import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.common.entites.Filter
 import com.mihan.movie.library.common.entites.VideoCategory
-import com.mihan.movie.library.common.listeners.EventManager
+import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.common.utils.whileUiSubscribed
 import com.mihan.movie.library.domain.usecases.GetListVideoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel

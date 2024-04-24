@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.compose.DialogNavigator
-import com.mihan.movie.library.common.listeners.EventManager
-import com.mihan.movie.library.common.listeners.EventManagerImpl
+import com.mihan.movie.library.common.utils.EventManager
+import com.mihan.movie.library.common.utils.EventManagerImpl
 import com.mihan.movie.library.common.utils.VoiceRecognizer
 import com.mihan.movie.library.data.repository.AppUpdateRepositoryImpl
 import com.mihan.movie.library.data.repository.FavouritesRepositoryImpl

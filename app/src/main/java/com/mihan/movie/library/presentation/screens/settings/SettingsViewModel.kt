@@ -49,7 +49,7 @@ class SettingsViewModel @Inject constructor(
     val remoteParsing = dataStorePrefs.getRemoteParsing().stateIn(
         viewModelScope,
         whileUiSubscribed,
-        true
+        false
     )
 
     val autoUpdate = dataStorePrefs.getAutoUpdate().stateIn(

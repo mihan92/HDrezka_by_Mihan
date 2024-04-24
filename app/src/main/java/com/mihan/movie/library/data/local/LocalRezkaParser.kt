@@ -34,8 +34,9 @@ class LocalRezkaParser @Inject constructor(
     private val dataStorePrefs: DataStorePrefs
 ) : CoroutineScope {
     override val coroutineContext: CoroutineContext = SupervisorJob() + Dispatchers.IO
-    private var filmId: String = Constants.EMPTY_STRING
+
     private suspend fun getBaseUrl() = dataStorePrefs.getBaseUrl().first()
+    private suspend fun getVideoQuality() = dataStorePrefs.getVideoQuality().first().quality
 
     /**
      * Кэшируем список фильмов после первой загрузки, чтобы при каждом обращении не качать его снова.
@@ -117,7 +118,7 @@ class LocalRezkaParser @Inject constructor(
      */
     suspend fun getDetailVideoByUrl(url: String): VideoDetailDto = withContext(Dispatchers.IO) {
         val document = getConnection(url).get()
-        filmId = document.select("div.b-userset__fav_holder").attr("data-post_id")
+        val filmId = document.select("div.b-userset__fav_holder").attr("data-post_id")
         val element = document.select("div.b-post")
         val title = element.select("div.b-post__title").text()
         val desc = element.select("div.b-post__description_text").text()
@@ -136,7 +137,7 @@ class LocalRezkaParser @Inject constructor(
             ?.joinToString()
 
         VideoDetailDto(
-            videoId = filmId,
+            filmId = filmId,
             title = title,
             description = desc,
             releaseDate = getTableValueByName(table, "дата выхода"),
@@ -174,8 +175,7 @@ class LocalRezkaParser @Inject constructor(
      * Проходим по странице и ищем переводы, если переводы не найдены, значит это оригинальная озвучка без переводов.
      * Добавляем ее вручную
      */
-    private fun getTranslations(document: Document): Map<String, String> {
-        val mapOfTranslations = mutableMapOf<String, String>()
+    private fun getTranslations(document: Document): Map<String, String> = buildMap {
         val translators = document.select(".b-translator__item")
         for (element in translators) {
             if (element.hasClass("b-prem_translator")) continue
@@ -185,9 +185,9 @@ class LocalRezkaParser @Inject constructor(
             if (country.isNotEmpty()) {
                 name += "($country)"
             }
-            mapOfTranslations[name] = translatorId
+            this[name] = translatorId
         }
-        if (mapOfTranslations.isEmpty()) {
+        if (this.isEmpty()) {
             val translator = document
                 .select("script")
                 .map(Element::data)
@@ -196,9 +196,8 @@ class LocalRezkaParser @Inject constructor(
                 ?.map(String::trim)
                 ?.take(2)
                 ?.last() ?: error("Ожидаем в хорошем качестве...")
-            mapOfTranslations[RUSSIAN_TRANSLATOR_NAME] = translator
+            this[RUSSIAN_TRANSLATOR_NAME] = translator
         }
-        return mapOfTranslations.toMap()
     }
 
     suspend fun getTranslationsByUrl(url: String): VideoDto = withContext(Dispatchers.IO) {
@@ -207,7 +206,6 @@ class LocalRezkaParser @Inject constructor(
         val isVideoHasSeries = document.select("ul.b-simple_episodes__list").hasText()
         val translations = getTranslations(document)
         VideoDto(
-            videoId = filmId,
             isVideoHasTranslations = isVideoHasTranslation,
             isVideoHasSeries = isVideoHasSeries,
             translations = translations
@@ -219,17 +217,16 @@ class LocalRezkaParser @Inject constructor(
         videoId: String,
         season: String,
         episode: String
-    ): List<StreamDto> = withContext(Dispatchers.IO) {
-        val list = mutableListOf<StreamDto>()
-        var streams = parseSteams(getEncodedString(translationId, videoId, season, episode))
-        var isValid = checkValidateUrl(streams)
-        while (!isValid || streams.isEmpty()) {
-            streams = parseSteams(getEncodedString(translationId, videoId, season, episode))
-            isValid = checkValidateUrl(streams)
-        }
-        list.addAll(streams)
-
-        list.toList()
+    ): StreamDto = withContext(Dispatchers.IO) {
+        var streamList = parseSteams(getEncodedString(translationId, videoId, season, episode))
+        buildList {
+            var isValid = checkValidateUrl(streamList)
+            while (!isValid || streamList.isEmpty()) {
+                streamList = parseSteams(getEncodedString(translationId, videoId, season, episode))
+                isValid = checkValidateUrl(streamList)
+            }
+            addAll(streamList)
+        }.firstOrNull { it.quality == getVideoQuality() } ?: streamList.last()
     }
 
     private suspend fun getEncodedString(
@@ -255,83 +252,81 @@ class LocalRezkaParser @Inject constructor(
     }
 
     suspend fun getVideosByTitle(videoTitle: String): List<VideoItemDto> = withContext(Dispatchers.IO) {
-        val list = mutableListOf<VideoItemDto>()
-        val document = getConnection("${getBaseUrl()}$SEARCH_URL").data("q", videoTitle).post()
-        val element = document.select("div.b-content__inline_item")
-        for (i in 0 until element.size) {
-            val title = element.select("div.b-content__inline_item-link")
-                .select("a")
-                .eq(i)
-                .text()
-            val imageUrl = element.select("img")
-                .eq(i)
-                .attr("src")
-            val movieUrl = element.select("div.b-content__inline_item-cover")
-                .select("a")
-                .eq(i)
-                .attr("href")
-            val category = element.select("i.entity")
-                .eq(i)
-                .text()
-            val movie = VideoItemDto(
-                title = title,
-                category = category,
-                imageUrl = imageUrl,
-                videoUrl = movieUrl
-            )
-            list.add(movie)
+        buildList {
+            val document = getConnection("${getBaseUrl()}$SEARCH_URL").data("q", videoTitle).post()
+            val element = document.select("div.b-content__inline_item")
+            for (i in 0 until element.size) {
+                val title = element.select("div.b-content__inline_item-link")
+                    .select("a")
+                    .eq(i)
+                    .text()
+                val imageUrl = element.select("img")
+                    .eq(i)
+                    .attr("src")
+                val movieUrl = element.select("div.b-content__inline_item-cover")
+                    .select("a")
+                    .eq(i)
+                    .attr("href")
+                val category = element.select("i.entity")
+                    .eq(i)
+                    .text()
+                val movie = VideoItemDto(
+                    title = title,
+                    category = category,
+                    imageUrl = imageUrl,
+                    videoUrl = movieUrl
+                )
+                add(movie)
+            }
         }
-        list.toList()
     }
 
-    suspend fun getSeasonsByTranslatorId(translatorId: String): List<SeasonModelDto> =
+    suspend fun getSeasonsByTranslatorId(translatorId: String, filmId: String): List<SeasonModelDto> =
         withContext(Dispatchers.IO) {
-            val list = mutableListOf<SeasonModelDto>()
-            val data: ArrayMap<String, String> = ArrayMap()
-            data["id"] = filmId
-            data["translator_id"] = translatorId
-            data["action"] = "get_episodes"
-            val unixTime = System.currentTimeMillis()
-            val result: Document? = getConnection("${getBaseUrl()}$GET_STREAM_POST/?t=$unixTime").data(data).post()
-            if (result != null) {
-                val bodyString: String = result.select("body").text()
-                val jsonObject = JSONObject(bodyString)
-                if (jsonObject.getBoolean("success")) {
-                    val map = parseSeasons(Jsoup.parse(jsonObject.getString("episodes")))
-                    map.entries.forEach {
-                        list.add(SeasonModelDto(it.key, it.value))
+            buildList {
+                val data: ArrayMap<String, String> = ArrayMap()
+                data["id"] = filmId
+                data["translator_id"] = translatorId
+                data["action"] = "get_episodes"
+                val unixTime = System.currentTimeMillis()
+                val result: Document? = getConnection("${getBaseUrl()}$GET_STREAM_POST/?t=$unixTime").data(data).post()
+                if (result != null) {
+                    val bodyString: String = result.select("body").text()
+                    val jsonObject = JSONObject(bodyString)
+                    if (jsonObject.getBoolean("success")) {
+                        val map = parseSeasons(Jsoup.parse(jsonObject.getString("episodes")))
+                        map.entries.forEach {
+                            add(SeasonModelDto(it.key, it.value))
+                        }
                     }
+                } else {
+                    error("result is null")
                 }
-            } else {
-                error("result is null")
             }
-            list.toList()
         }
 
     private suspend fun checkValidateUrl(listStreams: List<StreamDto>): Boolean {
         return if (listStreams.isEmpty()) false
         else {
-            val selectedQuality = dataStorePrefs.getVideoQuality().first()
-            val selectedStream = listStreams.firstOrNull { it.quality == selectedQuality.quality } ?: listStreams.last()
+            val selectedStream = listStreams.firstOrNull { it.quality == getVideoQuality() } ?: listStreams.last()
             return Patterns.WEB_URL.matcher(selectedStream.url).matches()
         }
     }
 
-    suspend fun getStreamsByTranslationId(translatorId: String): List<StreamDto> =
+    suspend fun getStreamsByTranslationId(translatorId: String, filmId: String): StreamDto =
         withContext(Dispatchers.IO) {
-            val listOfStreams = mutableListOf<StreamDto>()
-            var streams = parseSteams(getEncodedString(translatorId))
-            var isValid = checkValidateUrl(streams)
-            while (!isValid || streams.isEmpty()) {
-                streams = parseSteams(getEncodedString(translatorId))
-                isValid = checkValidateUrl(streams)
-            }
-            listOfStreams.addAll(streams)
-
-            listOfStreams.toList()
+            var streamList = parseSteams(getEncodedString(translatorId, filmId))
+            buildList {
+                var isValid = checkValidateUrl(streamList)
+                while (!isValid || streamList.isEmpty()) {
+                    streamList = parseSteams(getEncodedString(translatorId, filmId))
+                    isValid = checkValidateUrl(streamList)
+                }
+                addAll(streamList)
+            }.firstOrNull { it.quality == getVideoQuality() } ?: streamList.last()
         }
 
-    private suspend fun getEncodedString(translatorId: String): String {
+    private suspend fun getEncodedString(translatorId: String, filmId: String): String {
         val data: ArrayMap<String, String> = ArrayMap()
         data["id"] = filmId
         data["translator_id"] = translatorId
@@ -350,39 +345,19 @@ class LocalRezkaParser @Inject constructor(
         return Constants.EMPTY_STRING
     }
 
-    private fun parseSteams(streams: String?): List<StreamDto> {
-        val parsedStreams = mutableListOf<StreamDto>()
-        if (!streams.isNullOrEmpty()) {
-            val decodedStreams = decodeUrl(streams)
-            val split: Array<String> = decodedStreams.split(",").toTypedArray()
-            for (str in split) {
-                try {
-                    if (str.contains(" or ")) {
-                        parsedStreams.add(
-                            StreamDto(
-                                str.split(" or ").toTypedArray()[1],
-                                str.substring(1, str.indexOf("]"))
-                            )
-                        )
-                    } else {
-                        parsedStreams.add(
-                            StreamDto(
-                                str.substring(str.indexOf("]") + 1),
-                                str.substring(1, str.indexOf("]"))
-                            )
-                        )
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    return emptyList()
-                }
-            }
+    private fun parseSteams(streams: String?): List<StreamDto> = buildList {
+        if (streams.isNullOrEmpty()) return emptyList()
+        val decodedStreams = decodeUrl(streams)
+        val regex = """\[(.*?)](.*?)\.mp4""".toRegex()
+        val matches = regex.findAll(decodedStreams)
+        for (match in matches) {
+            val quality = match.groupValues[1]
+            val url = match.groupValues[2] + ".mp4"
+            add(StreamDto(url, quality))
         }
-        return parsedStreams
     }
 
-    private fun parseSeasons(document: Document): Map<String, List<String>> {
-        val seasonList = mutableMapOf<String, List<String>>()
+    private fun parseSeasons(document: Document): Map<String, List<String>> = buildMap {
         val seasons = document.select("ul.b-simple_episodes__list")
         for (season in seasons) {
             val n = season.attr("id").replace("simple-episodes-list-", "")
@@ -391,41 +366,42 @@ class LocalRezkaParser @Inject constructor(
             for (episode in episodes) {
                 episodesList.add(episode.attr("data-episode_id"))
             }
-            seasonList[n] = episodesList
+            this[n] = episodesList
         }
-        return seasonList.toMap()
     }
 
     @OptIn(ExperimentalEncodingApi::class)
-    private fun decodeUrl(str: String): String {
-        return try {
-            var result = ""
-            val chunks = str.drop(2).split("//_//")
-            var lengthSalt = chunks.first().length
-            chunks.forEach { item ->
-                val parts = item.split("=").filter { part -> part.isNotEmpty() }
-                val minPart = parts.minOf { it.length }
-                if (minPart < lengthSalt) lengthSalt = minPart + 1
-            }
-            chunks.forEachIndexed { index, item ->
-                val parts = item.split("=").filter { part -> part.isNotEmpty() }
-                var string = parts[0]
-                if (parts.size > 1) {
-                    parts.forEachIndexed { i, _ ->
-                        if (i % 2 != 0)
-                            string = parts[i]
-                    }
-                } else if (index > 0) {
-                    string = string.drop(lengthSalt)
-                }
-                result += string
-            }
-            String(Base64.decode(result))
-        } catch (e: Exception) {
-            e.printStackTrace()
-            str
+    private fun decodeUrl(str: String): String = runCatching {
+        var result = ""
+        val chunks = str.drop(2).split("//_//")
+        var lengthSalt = chunks.first().length
+        chunks.forEach { item ->
+            val parts = item.split("=").filter { part -> part.isNotEmpty() }
+            val minPart = parts.minOf { it.length }
+            if (minPart < lengthSalt) lengthSalt = minPart + 1
         }
-    }
+        chunks.forEachIndexed { index, item ->
+            val parts = item.split("=").filter { part -> part.isNotEmpty() }
+            var string = parts[0]
+            if (parts.size > 1) {
+                parts.forEachIndexed { i, _ ->
+                    if (i % 2 != 0)
+                        string = parts[i]
+                }
+            } else if (index > 0) {
+                string = string.drop(lengthSalt)
+            }
+            result += string
+        }
+        String(Base64.decode(result))
+    }.fold(
+        { decodedUrl -> decodedUrl },
+        { error ->
+            logger(error.message.toString())
+            Constants.EMPTY_STRING
+        }
+    )
+
 
     companion object {
         private const val CONNECTION_TIMEOUT = 15_000

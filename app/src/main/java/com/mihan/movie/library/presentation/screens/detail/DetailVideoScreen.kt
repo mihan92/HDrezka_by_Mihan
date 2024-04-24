@@ -69,7 +69,7 @@ fun DetailVideoScreen(
     val screenState by detailViewModel.screenState.collectAsStateWithLifecycle()
     val filmDialogState = detailViewModel.showFilmDialog.collectAsStateWithLifecycle()
     val serialDialogState = detailViewModel.showSerialDialog.collectAsStateWithLifecycle()
-    val dataState by detailViewModel.videoData.collectAsStateWithLifecycle()
+    val videoInfo by detailViewModel.videoInfo.collectAsStateWithLifecycle()
     val listOfSeasons by detailViewModel.listOfSeasons.collectAsStateWithLifecycle()
     val videoHistoryModel by detailViewModel.videoHistoryModel.collectAsStateWithLifecycle()
     val isVideoHasFavourites by detailViewModel.isVideoHasFavourites.collectAsStateWithLifecycle()
@@ -84,11 +84,11 @@ fun DetailVideoScreen(
                 isVideoHasFavourites = isVideoHasFavourites,
                 onButtonWatchClick = {
                     if (detailModel.errorMessage.isEmpty())
-                        detailViewModel.getTranslations()
+                        detailViewModel.onButtonWatchClicked()
                     else
                         Toast.makeText(context, detailModel.errorMessage, Toast.LENGTH_LONG).show()
                 },
-                onButtonFavouritesClick = detailViewModel::onButtonFavouritesClick
+                onButtonFavouritesClick = detailViewModel::onButtonFavouritesClicked
             )
         }
         if (screenState.isLoading) {
@@ -103,9 +103,9 @@ fun DetailVideoScreen(
         }
         FilmDialog(
             isDialogShow = filmDialogState,
-            translations = dataState.translations,
+            translations = videoInfo.translations,
             onTranslationItemClicked = { translate ->
-                val selectedTranslate = dataState.translations.getValue(translate)
+                val selectedTranslate = videoInfo.translations.getValue(translate)
                 detailViewModel.selectTranslateForFilms(selectedTranslate)
             },
             onDialogDismiss = detailViewModel::onDialogDismiss
@@ -113,10 +113,10 @@ fun DetailVideoScreen(
         SerialDialog(
             isDialogShow = serialDialogState,
             videoHistoryModel = videoHistoryModel,
-            translations = dataState.translations,
+            translations = videoInfo.translations,
             seasons = listOfSeasons,
             onTranslationItemClicked = { translate ->
-                val translatorId = dataState.translations.getValue(translate)
+                val translatorId = videoInfo.translations.getValue(translate)
                 detailViewModel.selectTranslateForSerials(translatorId)
             },
             onEpisodeClicked = { season, episode ->

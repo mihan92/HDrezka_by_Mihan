@@ -1,7 +1,7 @@
 package com.mihan.movie.library.domain.models
 
 data class VideoDetailModel(
-    val videoId: String,
+    val filmId: String,
     val title: String,
     val description: String,
     val releaseDate: String,

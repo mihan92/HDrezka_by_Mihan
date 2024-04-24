@@ -42,7 +42,7 @@ interface AppModule {
         @Provides
         @Singleton
         fun provideRemoteParserApiService(retrofit: Retrofit.Builder): RemoteParserApiService = retrofit
-            .baseUrl(Constants.LOCAL_TEST_PARSER_API_BASE_URL)
+            .baseUrl(Constants.REMOTE_PARSER_API_BASE_URL)
             .build()
             .create(RemoteParserApiService::class.java)
 

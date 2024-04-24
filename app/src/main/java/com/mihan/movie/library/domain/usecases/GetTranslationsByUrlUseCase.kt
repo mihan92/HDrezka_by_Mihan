@@ -3,13 +3,13 @@ package com.mihan.movie.library.domain.usecases
 import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.data.models.toVideoModel
 import com.mihan.movie.library.domain.ParserRepository
-import com.mihan.movie.library.domain.models.VideoModel
+import com.mihan.movie.library.domain.models.VideoInfoModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 class GetTranslationsByUrlUseCase @Inject constructor(private val parserRepository: ParserRepository) {
-    suspend operator fun invoke(filmUrl: String): Flow<ApiResponse<VideoModel>> = flow {
+    suspend operator fun invoke(filmUrl: String): Flow<ApiResponse<VideoInfoModel>> = flow {
         emit(ApiResponse.Loading)
         when (val result = parserRepository.getTranslationsByUrl(filmUrl)) {
             is ApiResponse.Loading -> Unit

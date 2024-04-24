@@ -3,7 +3,7 @@ package com.mihan.movie.library.presentation.screens.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mihan.movie.library.common.ApiResponse
-import com.mihan.movie.library.common.listeners.EventManager
+import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.common.utils.VoiceRecognizer
 import com.mihan.movie.library.domain.usecases.GetVideosByTitleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -21,18 +21,18 @@ interface ParserRepository {
 
     suspend fun getTranslationsByUrl(url: String): ApiResponse<VideoDto>
 
-    suspend fun getStreamsBySeasonId(
+    suspend fun getStreamBySeasonId(
         translationId: String,
-        videoId: String,
+        filmId: String,
         season: String,
         episode: String
-    ): ApiResponse<List<StreamDto>>
+    ): ApiResponse<StreamDto>
 
     suspend fun getVideosByTitle(videoTitle: String): ApiResponse<List<VideoItemDto>>
 
-    suspend fun getSeasonsByTranslatorId(translatorId: String): ApiResponse<List<SeasonModelDto>>
-
     suspend fun getBaseUrl(): ApiResponse<BaseUrlModelDto>
 
-    suspend fun getStreamsByTranslatorId(translatorId: String): ApiResponse<List<StreamDto>>
+    suspend fun getSeasonsByTranslatorId(translatorId: String, filmId: String): ApiResponse<List<SeasonModelDto>>
+
+    suspend fun getStreamByTranslatorId(translatorId: String, filmId: String): ApiResponse<StreamDto>
 }

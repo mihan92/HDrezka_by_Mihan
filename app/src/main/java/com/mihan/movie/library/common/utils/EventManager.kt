@@ -1,4 +1,4 @@
-package com.mihan.movie.library.common.listeners
+package com.mihan.movie.library.common.utils
 
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kotlinx.coroutines.channels.BufferOverflow

@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mihan.movie.library.common.extentions.getColumn
 import com.mihan.movie.library.common.extentions.logger
-import com.mihan.movie.library.common.listeners.EventManager
+import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.common.utils.AppUpdatesChecker
 import com.mihan.movie.library.common.utils.IDownloadManager
 import dagger.hilt.android.lifecycle.HiltViewModel
