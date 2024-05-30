@@ -15,7 +15,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -43,6 +42,7 @@ import androidx.tv.foundation.lazy.grid.items
 import androidx.tv.foundation.lazy.grid.rememberTvLazyGridState
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
+import androidx.tv.material3.Icon
 import androidx.tv.material3.IconButton
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
@@ -90,8 +90,6 @@ fun SearchScreen(
     )
     if (voiceState.error.isNotEmpty())
         Toast.makeText(context, voiceState.error, Toast.LENGTH_LONG).show()
-    if (screenState.error.isNotEmpty())
-        Toast.makeText(context, screenState.error, Toast.LENGTH_LONG).show()
 }
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -211,9 +209,8 @@ private fun VoiceSearchButton(
             .padding(horizontal = size16dp)
             .focusRequester(focusRequester),
         colors = ButtonDefaults.colors(
-            contentColor = MaterialTheme.colorScheme.background,
             focusedContainerColor = MaterialTheme.colorScheme.primary,
-            focusedContentColor = MaterialTheme.colorScheme.onBackground
+            focusedContentColor = MaterialTheme.colorScheme.onPrimary
         )
     ) {
         AnimatedContent(targetState = isSpeaking, label = "") { isSpeaking ->
@@ -221,13 +218,11 @@ private fun VoiceSearchButton(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_stop),
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onBackground
                 )
             else
                 Icon(
                     painter = painterResource(id = R.drawable.ic_mic),
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onBackground
                 )
         }
     }
@@ -246,15 +241,13 @@ private fun ButtonSearch(
         onClick = buttonPressed,
         modifier = modifier.padding(horizontal = size16dp),
         colors = ButtonDefaults.colors(
-            contentColor = MaterialTheme.colorScheme.background,
             focusedContainerColor = MaterialTheme.colorScheme.primary,
-            focusedContentColor = MaterialTheme.colorScheme.onBackground
+            focusedContentColor = MaterialTheme.colorScheme.onPrimary
         )
     ) {
         Icon(
             imageVector = Icons.Rounded.Search,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onBackground
         )
     }
 }

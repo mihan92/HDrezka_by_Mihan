@@ -174,7 +174,8 @@ private fun ButtonWatch(
     Button(
         onClick = onButtonWatchClicked,
         colors = ButtonDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.primary
+            focusedContainerColor = MaterialTheme.colorScheme.primary,
+            focusedContentColor = MaterialTheme.colorScheme.onPrimary
         ),
         shape = ButtonDefaults.shape(RoundedCornerShape(size8dp)),
         modifier = modifier
@@ -198,14 +199,14 @@ private fun ButtonDelete(
     IconButton(
         onClick = onButtonDeleteClicked,
         colors = ButtonDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.primary
+            focusedContainerColor = MaterialTheme.colorScheme.primary,
+            focusedContentColor = MaterialTheme.colorScheme.onPrimary
         ),
         modifier = modifier.onFocusChanged { isFocused(it.isFocused) }
     ) {
         Icon(
             imageVector = Icons.Rounded.Delete,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onBackground
         )
     }
 }

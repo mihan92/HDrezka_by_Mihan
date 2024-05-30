@@ -9,7 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.navigation.NavBackStackEntry
 import com.ramcosta.composedestinations.spec.DestinationStyle
 
-private const val TWEEN_DURATION_IN_MILLIS = 500
+private const val TWEEN_DURATION_IN_MILLIS = 1000
 
 object AnimatedScreenTransitions : DestinationStyle.Animated {
     override fun AnimatedContentTransitionScope<NavBackStackEntry>.enterTransition(): EnterTransition {

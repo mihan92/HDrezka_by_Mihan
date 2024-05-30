@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mihan.movie.library.common.extentions.getColumn
 import com.mihan.movie.library.common.extentions.logger
+import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.common.utils.AppUpdatesChecker
 import com.mihan.movie.library.common.utils.IDownloadManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +20,8 @@ import javax.inject.Inject
 class AppUpdatesViewModel @Inject constructor(
     private val appUpdatesChecker: AppUpdatesChecker,
     private val downloadManager: IDownloadManager,
-    private val systemDownloadManager: DownloadManager
+    private val systemDownloadManager: DownloadManager,
+    private val eventManager: EventManager
 ) : ViewModel() {
     private val _downloadState = MutableStateFlow(DownloadState())
     val downloadState = _downloadState.asStateFlow()
@@ -60,9 +62,8 @@ class AppUpdatesViewModel @Inject constructor(
                         }
 
                         else -> {
-                            _downloadState.update { state ->
-                                state.copy(isDownloading = false, errorMessage = "Что-то пошло не так..")
-                            }
+                            _downloadState.update { state -> state.copy(isDownloading = false) }
+                            eventManager.sendEvent("Что-то пошло не так..")
                             logger("error downloading status $status}")
                         }
                     }

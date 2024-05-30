@@ -1,6 +1,5 @@
 package com.mihan.movie.library.presentation.screens.app_updates
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -62,9 +60,6 @@ fun AppUpdatesScreen(
             )
         else
             DownloadingProgress(downloadingProgress = downloadState.downloadingProgress)
-
-        if (downloadState.errorMessage.isNotEmpty())
-            Toast.makeText(LocalContext.current, downloadState.errorMessage, Toast.LENGTH_LONG).show()
     }
 }
 

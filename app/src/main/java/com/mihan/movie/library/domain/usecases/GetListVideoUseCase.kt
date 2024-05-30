@@ -1,9 +1,8 @@
 package com.mihan.movie.library.domain.usecases
 
-import com.mihan.movie.library.common.DtoState
+import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.common.entites.Filter
 import com.mihan.movie.library.common.entites.VideoCategory
-import com.mihan.movie.library.common.extentions.logger
 import com.mihan.movie.library.data.models.toVideoItemModel
 import com.mihan.movie.library.domain.ParserRepository
 import com.mihan.movie.library.domain.models.VideoItemModel
@@ -16,14 +15,12 @@ class GetListVideoUseCase @Inject constructor(private val parserRepository: Pars
         filter: Filter,
         videoCategory: VideoCategory,
         page: Int
-    ): Flow<DtoState<List<VideoItemModel>>> = flow {
-        try {
-            emit(DtoState.Loading())
-            val listOfMovies = parserRepository.getListVideo(filter, videoCategory, page).map { it.toVideoItemModel() }
-            emit(DtoState.Success(listOfMovies))
-        } catch (e: Exception) {
-            logger(e.message.toString())
-            emit(DtoState.Error(e.message ?: "GetDataUseCase Error"))
+    ): Flow<ApiResponse<List<VideoItemModel>>> = flow {
+        emit(ApiResponse.Loading)
+        when (val result = parserRepository.getListVideo(filter, videoCategory, page)) {
+            is ApiResponse.Loading -> Unit
+            is ApiResponse.Success -> emit(ApiResponse.Success(result.data.map { it.toVideoItemModel() }))
+            is ApiResponse.Error -> emit(ApiResponse.Error(result.errorMessage))
         }
     }
 }

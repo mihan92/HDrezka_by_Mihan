@@ -69,7 +69,7 @@ fun DetailVideoScreen(
     val screenState by detailViewModel.screenState.collectAsStateWithLifecycle()
     val filmDialogState = detailViewModel.showFilmDialog.collectAsStateWithLifecycle()
     val serialDialogState = detailViewModel.showSerialDialog.collectAsStateWithLifecycle()
-    val dataState by detailViewModel.videoData.collectAsStateWithLifecycle()
+    val videoInfo by detailViewModel.videoInfo.collectAsStateWithLifecycle()
     val listOfSeasons by detailViewModel.listOfSeasons.collectAsStateWithLifecycle()
     val videoHistoryModel by detailViewModel.videoHistoryModel.collectAsStateWithLifecycle()
     val isVideoHasFavourites by detailViewModel.isVideoHasFavourites.collectAsStateWithLifecycle()
@@ -78,19 +78,17 @@ fun DetailVideoScreen(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        if (screenState.errorMessage.isNotEmpty())
-            Toast.makeText(context, screenState.errorMessage, Toast.LENGTH_LONG).show()
         screenState.detailInfo?.let { detailModel ->
             Content(
                 videoDetailModel = detailModel,
                 isVideoHasFavourites = isVideoHasFavourites,
                 onButtonWatchClick = {
                     if (detailModel.errorMessage.isEmpty())
-                        detailViewModel.getTranslations()
+                        detailViewModel.onButtonWatchClicked()
                     else
                         Toast.makeText(context, detailModel.errorMessage, Toast.LENGTH_LONG).show()
                 },
-                onButtonFavouritesClick = detailViewModel::onButtonFavouritesClick
+                onButtonFavouritesClick = detailViewModel::onButtonFavouritesClicked
             )
         }
         if (screenState.isLoading) {
@@ -105,9 +103,9 @@ fun DetailVideoScreen(
         }
         FilmDialog(
             isDialogShow = filmDialogState,
-            translations = dataState.translations,
+            translations = videoInfo.translations,
             onTranslationItemClicked = { translate ->
-                val selectedTranslate = dataState.translations.getValue(translate)
+                val selectedTranslate = videoInfo.translations.getValue(translate)
                 detailViewModel.selectTranslateForFilms(selectedTranslate)
             },
             onDialogDismiss = detailViewModel::onDialogDismiss
@@ -115,10 +113,10 @@ fun DetailVideoScreen(
         SerialDialog(
             isDialogShow = serialDialogState,
             videoHistoryModel = videoHistoryModel,
-            translations = dataState.translations,
+            translations = videoInfo.translations,
             seasons = listOfSeasons,
             onTranslationItemClicked = { translate ->
-                val translatorId = dataState.translations.getValue(translate)
+                val translatorId = videoInfo.translations.getValue(translate)
                 detailViewModel.selectTranslateForSerials(translatorId)
             },
             onEpisodeClicked = { season, episode ->
@@ -288,8 +286,10 @@ private fun ButtonsSection(
                 shape = ButtonDefaults.shape(RoundedCornerShape(size4dp)),
                 onClick = onButtonWatchClick,
                 colors = ButtonDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    contentColor = MaterialTheme.colorScheme.background,
                     focusedContainerColor = MaterialTheme.colorScheme.primary,
-                    containerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                    focusedContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 modifier = modifier
                     .padding(start = size28dp)
@@ -298,15 +298,16 @@ private fun ButtonsSection(
                 Text(
                     text = stringResource(id = R.string.bt_watch).uppercase(),
                     fontWeight = FontWeight.W700,
-                    color = MaterialTheme.colorScheme.background
                 )
             }
             Button(
                 shape = ButtonDefaults.shape(RoundedCornerShape(size4dp)),
                 onClick = onButtonFavouritesClick,
                 colors = ButtonDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    contentColor = MaterialTheme.colorScheme.background,
                     focusedContainerColor = MaterialTheme.colorScheme.primary,
-                    containerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                    focusedContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 modifier = modifier
                     .padding(start = size28dp)
@@ -316,13 +317,11 @@ private fun ButtonsSection(
                     Text(
                         text = stringResource(id = R.string.delete_from_favourites_title).uppercase(),
                         fontWeight = FontWeight.W700,
-                        color = MaterialTheme.colorScheme.background
                     )
                 else
                     Text(
                         text = stringResource(id = R.string.add_to_favourites_title).uppercase(),
                         fontWeight = FontWeight.W700,
-                        color = MaterialTheme.colorScheme.background
                     )
             }
         }

@@ -17,8 +17,8 @@ android {
         applicationId = "com.mihan.movie.library"
         minSdk = 28
         targetSdk = 34
-        versionCode = 12
-        versionName = "0.7.1"
+        versionCode = 13
+        versionName = "0.7.2"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -69,8 +69,9 @@ dependencies {
     val coilVersion = "2.5.0"
     val dataStoreVersion = "1.0.0"
     val permissionsVersion = "0.25.1"
-    val composeBomVersion = "2024.02.02"
+    val composeBomVersion = "2024.04.00"
     val roomVersion = "2.6.1"
+    val exoPlayerVersion = "1.3.1"
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
@@ -78,7 +79,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.tv:tv-foundation:1.0.0-alpha07") //пока не трогать, много чего экспериментального
     implementation("androidx.tv:tv-material:1.0.0-alpha07") //пока не трогать, много чего экспериментального
-    implementation("androidx.media3:media3-extractor:1.3.0")
+    implementation("androidx.media3:media3-extractor:1.3.1")
     implementation("androidx.compose.material3:material3:1.2.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")

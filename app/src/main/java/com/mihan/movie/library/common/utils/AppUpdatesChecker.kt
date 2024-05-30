@@ -1,9 +1,8 @@
 package com.mihan.movie.library.common.utils
 
 import com.mihan.movie.library.BuildConfig
-import com.mihan.movie.library.common.Constants
 import com.mihan.movie.library.common.DataStorePrefs
-import com.mihan.movie.library.common.DtoState
+import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.common.extentions.logger
 import com.mihan.movie.library.domain.models.ChangelogModel
 import com.mihan.movie.library.domain.usecases.CheckUpdatesUseCase
@@ -30,14 +29,14 @@ class AppUpdatesChecker @Inject constructor(
     fun checkUpdates() {
         launch {
             checkUpdatesUseCase()
-                .onEach { state ->
-                    when (state) {
-                        is DtoState.Error -> logger(state.errorMessage)
-                        is DtoState.Loading -> Unit
-                        is DtoState.Success -> {
-                            val latestVersionCode = state.data?.latestVersionCode ?: Constants.DEFAULT_INT
+                .onEach { result ->
+                    when (result) {
+                        is ApiResponse.Error -> logger(result.errorMessage)
+                        is ApiResponse.Loading -> Unit
+                        is ApiResponse.Success -> {
+                            val latestVersionCode = result.data.latestVersionCode
                             dataStorePrefs.setAppUpdates(latestVersionCode > BuildConfig.VERSION_CODE)
-                            changelog = state.data
+                            changelog = result.data
                         }
                     }
                 }.last()

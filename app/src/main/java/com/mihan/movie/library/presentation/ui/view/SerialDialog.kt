@@ -43,7 +43,7 @@ import androidx.tv.foundation.lazy.list.rememberTvLazyListState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import com.mihan.movie.library.R
-import com.mihan.movie.library.domain.models.SeasonModel
+import com.mihan.movie.library.domain.models.SerialModel
 import com.mihan.movie.library.domain.models.VideoHistoryModel
 import com.mihan.movie.library.presentation.ui.size10dp
 import com.mihan.movie.library.presentation.ui.size14sp
@@ -59,7 +59,7 @@ fun SerialDialog(
     isDialogShow: State<Boolean>,
     videoHistoryModel: VideoHistoryModel?,
     translations: Map<String, String>,
-    seasons: List<SeasonModel>,
+    seasons: List<SerialModel>,
     onTranslationItemClicked: (String) -> Unit,
     onEpisodeClicked: (String, String) -> Unit,
     onDialogDismiss: () -> Unit,
@@ -143,7 +143,7 @@ private fun ExpandableTranslationList(
 
 @Composable
 private fun ExpandableSeasonList(
-    sections: List<SeasonModel>,
+    sections: List<SerialModel>,
     videoHistoryModel: VideoHistoryModel?,
     onEpisodeClicked: (String, String) -> Unit
 ) {

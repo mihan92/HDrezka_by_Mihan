@@ -4,7 +4,7 @@ import com.mihan.movie.library.common.Constants.EMPTY_STRING
 import com.mihan.movie.library.domain.models.VideoDetailModel
 
 data class VideoDetailDto(
-    val videoId: String = EMPTY_STRING,
+    val filmId: String = EMPTY_STRING,
     val title: String = EMPTY_STRING,
     val description: String = EMPTY_STRING,
     val releaseDate: String = EMPTY_STRING,
@@ -19,7 +19,7 @@ data class VideoDetailDto(
 )
 
 fun VideoDetailDto.toVideoDetail() = VideoDetailModel(
-    videoId = videoId,
+    filmId = filmId,
     title = title,
     description = description,
     releaseDate = releaseDate,

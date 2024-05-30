@@ -3,12 +3,14 @@ package com.mihan.movie.library.presentation.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mihan.movie.library.common.DataStorePrefs
-import com.mihan.movie.library.common.DtoState
+import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.common.entites.Filter
 import com.mihan.movie.library.common.entites.VideoCategory
+import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.common.utils.whileUiSubscribed
 import com.mihan.movie.library.domain.usecases.GetListVideoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,9 +23,10 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getListVideoUseCase: GetListVideoUseCase,
+    private val eventManager: EventManager,
     dataStorePrefs: DataStorePrefs
 ) : ViewModel() {
-    private val _screenState = MutableStateFlow(HomeScreenState())
+    private val _screenState = MutableSharedFlow<HomeScreenState>(replay = 1)
     private val _filterState = MutableStateFlow(Filter.Watching)
     private val _pageState = MutableStateFlow(FIRST_PAGE)
     val screenState = _screenState.asSharedFlow()
@@ -37,11 +40,14 @@ class HomeViewModel @Inject constructor(
 
     suspend fun getListVideo() {
         getListVideoUseCase.invoke(_filterState.value, videoCategoryState.first(), _pageState.value)
-            .onEach { dtoState ->
-                when (dtoState) {
-                    is DtoState.Error -> _screenState.value = HomeScreenState(errorMessage = dtoState.errorMessage)
-                    is DtoState.Loading -> _screenState.value = HomeScreenState(isLoading = true)
-                    is DtoState.Success -> _screenState.value = HomeScreenState(data = dtoState.data ?: emptyList())
+            .onEach { result ->
+                when (result) {
+                    is ApiResponse.Error -> {
+                        eventManager.sendEvent(result.errorMessage)
+                        _screenState.emit(HomeScreenState(isLoading = false))
+                    }
+                    is ApiResponse.Loading -> _screenState.emit(HomeScreenState(isLoading = true))
+                    is ApiResponse.Success -> _screenState.emit(HomeScreenState(data = result.data))
                 }
             }.last()
     }

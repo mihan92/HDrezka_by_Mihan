@@ -1,7 +1,6 @@
 package com.mihan.movie.library.domain.usecases
 
-import com.mihan.movie.library.common.DtoState
-import com.mihan.movie.library.common.extentions.logger
+import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.data.models.toVideoDetail
 import com.mihan.movie.library.domain.ParserRepository
 import com.mihan.movie.library.domain.models.VideoDetailModel
@@ -10,14 +9,12 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 class GetDetailVideoByUrlUseCase @Inject constructor(private val parserRepository: ParserRepository) {
-    suspend operator fun invoke(url: String): Flow<DtoState<VideoDetailModel>> = flow {
-        try {
-            emit(DtoState.Loading())
-            val detailVideo = parserRepository.getDetailVideoByUrl(url).toVideoDetail()
-            emit(DtoState.Success(detailVideo))
-        } catch (e: Exception) {
-            logger(e.message.toString())
-            emit(DtoState.Error(e.message ?: "GetDetailVideoByUrlUseCase Error"))
+    suspend operator fun invoke(url: String): Flow<ApiResponse<VideoDetailModel>> = flow {
+        emit(ApiResponse.Loading)
+        when (val result = parserRepository.getDetailVideoByUrl(url)) {
+            is ApiResponse.Loading -> Unit
+            is ApiResponse.Success -> emit(ApiResponse.Success(result.data.toVideoDetail()))
+            is ApiResponse.Error -> emit(ApiResponse.Error(result.errorMessage))
         }
     }
 }

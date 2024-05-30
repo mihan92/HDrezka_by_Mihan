@@ -14,7 +14,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.tv.material3.DrawerValue
@@ -26,6 +29,8 @@ import androidx.tv.material3.rememberDrawerState
 import com.mihan.movie.library.R
 import com.mihan.movie.library.common.DataStorePrefs
 import com.mihan.movie.library.common.entites.Colors
+import com.mihan.movie.library.common.extentions.logger
+import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.common.utils.AppUpdatesChecker
 import com.mihan.movie.library.presentation.navigation.Screens
 import com.mihan.movie.library.presentation.screens.NavGraphs
@@ -33,6 +38,9 @@ import com.mihan.movie.library.presentation.ui.theme.MovieLibraryTheme
 import com.mihan.movie.library.presentation.ui.view.DrawerContent
 import com.ramcosta.composedestinations.DestinationsNavHost
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -47,11 +55,15 @@ class MainActivity : ComponentActivity() {
     @Inject
     internal lateinit var appUpdatesChecker: AppUpdatesChecker
 
+    @Inject
+    internal lateinit var eventManager: EventManager
+
     @OptIn(ExperimentalTvMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         appUpdatesChecker.checkUpdates()
         onBackPressedCallback()
+        checkEvents()
         setContent {
             val primaryColorState = dataStorePrefs.getPrimaryColor().collectAsStateWithLifecycle(Colors.Color0)
             val primaryColor by remember { primaryColorState }
@@ -87,6 +99,17 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
+            }
+        }
+    }
+
+    private fun checkEvents() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                eventManager.eventsFlow.onEach { eventMessage ->
+                    logger("message $eventMessage")
+                    Toast.makeText(this@MainActivity, eventMessage, Toast.LENGTH_LONG).show()
+                }.launchIn(this)
             }
         }
     }

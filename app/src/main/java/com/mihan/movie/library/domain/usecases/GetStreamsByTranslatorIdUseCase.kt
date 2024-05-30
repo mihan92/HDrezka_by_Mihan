@@ -1,7 +1,6 @@
 package com.mihan.movie.library.domain.usecases
 
-import com.mihan.movie.library.common.DtoState
-import com.mihan.movie.library.common.extentions.logger
+import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.data.models.toStreamModel
 import com.mihan.movie.library.domain.ParserRepository
 import com.mihan.movie.library.domain.models.StreamModel
@@ -11,15 +10,14 @@ import javax.inject.Inject
 
 class GetStreamsByTranslatorIdUseCase @Inject constructor(private val parserRepository: ParserRepository) {
     suspend operator fun invoke(
-        translatorId: String
-    ): Flow<DtoState<List<StreamModel>>> = flow {
-        try {
-            emit(DtoState.Loading())
-            val streams = parserRepository.getStreamsByTranslatorId(translatorId).map { it.toStreamModel() }
-            emit(DtoState.Success(streams))
-        } catch (e: Exception) {
-            logger("GetStreamsByTranslatorIdUseCase error ${e.message}")
-            emit(DtoState.Error("Не удалось получить ссылку на видео. Попробуйте еще раз"))
+        translatorId: String,
+        filmId: String
+    ): Flow<ApiResponse<StreamModel>> = flow {
+        emit(ApiResponse.Loading)
+        when(val result = parserRepository.getStreamByTranslatorId(translatorId, filmId)) {
+            is ApiResponse.Loading -> Unit
+            is ApiResponse.Error -> emit(ApiResponse.Error(result.errorMessage))
+            is ApiResponse.Success -> emit(ApiResponse.Success(result.data.toStreamModel()))
         }
     }
 }

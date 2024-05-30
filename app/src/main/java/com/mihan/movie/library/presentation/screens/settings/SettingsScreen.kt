@@ -1,8 +1,8 @@
 package com.mihan.movie.library.presentation.screens.settings
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -71,11 +71,11 @@ fun SettingsScreen(
     val siteDialogState by settingsViewModel.siteDialogState.collectAsStateWithLifecycle()
     val primaryColor by settingsViewModel.getPrimaryColor.collectAsStateWithLifecycle()
     val isRemoteParsingSelected by settingsViewModel.remoteParsing.collectAsStateWithLifecycle()
+    val isAutoUpdateEnabled by settingsViewModel.autoUpdate.collectAsStateWithLifecycle()
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
     ) {
-        var isDevelopModeEnabled by remember { mutableStateOf(false) }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -96,17 +96,21 @@ fun SettingsScreen(
                 primaryColor = primaryColor,
                 onColorItemClicked = settingsViewModel::primaryColorChanged
             )
-            SiteUrl(onButtonClick = settingsViewModel::onButtonShowDialogClicked)
-            if (isDevelopModeEnabled)
-                RemoteParsing(
-                    isRemoteParsingSelected = isRemoteParsingSelected,
-                    settingsViewModel::onSwitchPressed
-                )
+            AutoUpdate(
+                isAutoUpdateEnabled = isAutoUpdateEnabled,
+                onSwitchPressed = settingsViewModel::onAutoUpdatePressed
+            )
+            AnimatedVisibility(visible = !isAutoUpdateEnabled) {
+                SiteUrl(onButtonClick = settingsViewModel::onButtonShowDialogClicked)
+            }
+            RemoteParsing(
+                isRemoteParsingSelected = isRemoteParsingSelected,
+                onSwitchPressed = settingsViewModel::onSwitchPressed
+            )
         }
         Text(
             text = stringResource(id = R.string.app_version_title, BuildConfig.VERSION_NAME),
             color = MaterialTheme.colorScheme.onBackground.copy(DESCRIPTION_TITLE_ALPHA),
-            modifier = Modifier.clickable { isDevelopModeEnabled = !isDevelopModeEnabled }
         )
     }
     ChangingSiteUrlDialog(
@@ -276,7 +280,41 @@ private fun RemoteParsing(
             }
         )
     }
+}
 
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun AutoUpdate(
+    isAutoUpdateEnabled: Boolean,
+    onSwitchPressed: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var isFocused by remember { mutableStateOf(false) }
+    val backgroundColor = if (isFocused) MaterialTheme.colorScheme.onBackground.copy(SELECTED_BACKGROUND_ALPHA)
+    else MaterialTheme.colorScheme.background
+    Row(
+        modifier = modifier
+            .background(backgroundColor, RoundedCornerShape(size8dp))
+            .padding(size10dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        TitleWithDescription(
+            titleResId = R.string.auto_update_title,
+            descResiId = R.string.auto_update_description
+        )
+        Switch(
+            checked = isAutoUpdateEnabled,
+            onCheckedChange = { onSwitchPressed(it) },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = MaterialTheme.colorScheme.background
+            ),
+            modifier = modifier.onFocusChanged {
+                isFocused = it.isFocused
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalTvMaterial3Api::class)
