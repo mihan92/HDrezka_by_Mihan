@@ -1,7 +1,6 @@
 package com.mihan.movie.library.domain.usecases
 
 import com.mihan.movie.library.common.ApiResponse
-import com.mihan.movie.library.data.models.toStreamModel
 import com.mihan.movie.library.domain.ParserRepository
 import com.mihan.movie.library.domain.models.StreamModel
 import kotlinx.coroutines.flow.Flow
@@ -19,7 +18,7 @@ class GetStreamsBySeasonIdUseCase @Inject constructor(private val parserReposito
         when(val result = parserRepository.getStreamBySeasonId(translationId, filmId, season, episode)) {
             is ApiResponse.Loading -> Unit
             is ApiResponse.Error -> emit(ApiResponse.Error(result.errorMessage))
-            is ApiResponse.Success -> emit(ApiResponse.Success(result.data.toStreamModel()))
+            is ApiResponse.Success -> emit(ApiResponse.Success(result.data))
         }
     }
 }

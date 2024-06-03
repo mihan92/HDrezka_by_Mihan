@@ -18,6 +18,9 @@ val size40dp = 40.dp
 val size50dp = 50.dp
 val size60dp = 60.dp
 val size100dp = 100.dp
+val size110dp = 110.dp
+val size140dp = 140.dp
+val size180dp = 180.dp
 
 val size14sp = 14.sp
 val size16sp = 16.sp

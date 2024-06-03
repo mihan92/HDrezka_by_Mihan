@@ -4,14 +4,14 @@ import android.util.ArrayMap
 import android.util.Patterns
 import com.mihan.movie.library.common.Constants
 import com.mihan.movie.library.common.DataStorePrefs
-import com.mihan.movie.library.common.entites.Filter
-import com.mihan.movie.library.common.entites.VideoCategory
+import com.mihan.movie.library.common.models.VideoCategory
 import com.mihan.movie.library.common.extentions.logger
-import com.mihan.movie.library.data.models.SeasonModelDto
+import com.mihan.movie.library.data.models.SerialModelDto
 import com.mihan.movie.library.data.models.StreamDto
 import com.mihan.movie.library.data.models.VideoDetailDto
 import com.mihan.movie.library.data.models.VideoDto
 import com.mihan.movie.library.data.models.VideoItemDto
+import com.mihan.movie.library.presentation.ui.view.TopBarItems
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,9 +42,9 @@ class LocalRezkaParser @Inject constructor(
      * Кэшируем список фильмов после первой загрузки, чтобы при каждом обращении не качать его снова.
      * Если текущие данные совпадают, то отдаем лист с кэшированными данными, если нет, качаем порцию фильмов снова.
      */
-    private val cashedListVideo = mutableListOf<VideoItemDto>()
+    private val cachedDefaultListVideo = mutableListOf<VideoItemDto>()
     private var currentPage = -1
-    private var currentFilter = Filter.Watching
+    private var currentTopBarItems = TopBarItems.Watching
     private var currentVideoCategory = VideoCategory.All
     private var currentBaseUrl = Constants.EMPTY_STRING
 
@@ -66,21 +66,21 @@ class LocalRezkaParser @Inject constructor(
      * Из главной страницы получаем список видосов
      */
     suspend fun getListVideo(
-        filter: Filter,
+        topBarItems: TopBarItems,
         videoCategory: VideoCategory,
         page: Int,
     ): List<VideoItemDto> =
         withContext(Dispatchers.IO) {
-            if (currentFilter == filter
+            if (currentTopBarItems == topBarItems
                 && currentVideoCategory == videoCategory
                 && currentPage == page
                 && getBaseUrl() == currentBaseUrl
-                && cashedListVideo.isNotEmpty()
+                && cachedDefaultListVideo.isNotEmpty()
             ) {
-                cashedListVideo.toList()
+                cachedDefaultListVideo.toList()
             } else {
-                cashedListVideo.clear()
-                val document = getConnection(getUrl(page, filter.section, videoCategory.genre)).get()
+                cachedDefaultListVideo.clear()
+                val document = getConnection(getUrl(page, topBarItems.section, videoCategory.genre)).get()
                 val element = document.select("div.b-content__inline_item")
                 for (i in 0 until element.size) {
                     val title = element.select("div.b-content__inline_item-link")
@@ -103,13 +103,13 @@ class LocalRezkaParser @Inject constructor(
                         imageUrl = imageUrl,
                         videoUrl = movieUrl
                     )
-                    cashedListVideo.add(movie)
+                    cachedDefaultListVideo.add(movie)
                 }
-                currentFilter = filter
+                currentTopBarItems = topBarItems
                 currentVideoCategory = videoCategory
                 currentPage = page
                 currentBaseUrl = getBaseUrl()
-                cashedListVideo.toList()
+                cachedDefaultListVideo.toList()
             }
         }
 
@@ -281,7 +281,7 @@ class LocalRezkaParser @Inject constructor(
         }
     }
 
-    suspend fun getSeasonsByTranslatorId(translatorId: String, filmId: String): List<SeasonModelDto> =
+    suspend fun getSeasonsByTranslatorId(translatorId: String, filmId: String): List<SerialModelDto> =
         withContext(Dispatchers.IO) {
             buildList {
                 val data: ArrayMap<String, String> = ArrayMap()
@@ -296,7 +296,7 @@ class LocalRezkaParser @Inject constructor(
                     if (jsonObject.getBoolean("success")) {
                         val map = parseSeasons(Jsoup.parse(jsonObject.getString("episodes")))
                         map.entries.forEach {
-                            add(SeasonModelDto(it.key, it.value))
+                            add(SerialModelDto(it.key, it.value))
                         }
                     }
                 } else {

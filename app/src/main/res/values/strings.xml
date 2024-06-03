@@ -56,4 +56,8 @@
     <string name="favourites_screen_placeholder">Список избранного пустой</string>
     <string name="auto_update_title">Автообновление сайта</string>
     <string name="auto_update_description">Автоматическое обновление зеркала HdRezka</string>
+    <string name="filter_button_title">Фильтр</string>
+    <string name="bt_find_title">Найти</string>
+    <string name="filter_dialog_title">Выберите нужную категорию:</string>
+    <string name="dialog_title_collections">Коллекции:</string>
 </resources>

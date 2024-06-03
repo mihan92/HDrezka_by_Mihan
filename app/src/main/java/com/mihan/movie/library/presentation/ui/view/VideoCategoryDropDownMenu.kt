@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
-import com.mihan.movie.library.common.entites.VideoCategory
+import com.mihan.movie.library.common.models.VideoCategory
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable

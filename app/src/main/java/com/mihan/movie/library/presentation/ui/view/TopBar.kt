@@ -1,6 +1,8 @@
 package com.mihan.movie.library.presentation.ui.view
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,31 +17,42 @@ import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.mihan.movie.library.common.entites.Filter
+import com.mihan.movie.library.R
 import com.mihan.movie.library.presentation.ui.size14sp
 import com.mihan.movie.library.presentation.ui.size16sp
 import com.mihan.movie.library.presentation.ui.size60dp
 
+enum class TopBarItems(@StringRes val titleResId: Int, val section: String) {
+    Filter(R.string.filter_button_title, ""),
+    Watching(R.string.filter_watching_title, "watching"),
+    Popular(R.string.filter_popular_title, "popular"),
+    Last(R.string.filter_last_title, "last"),
+    Soon(R.string.filter_soon_title, "soon"),
+}
 
 @Composable
 fun TopAppBar(
-    currentFilterSection: Filter,
-    onItemClick: (Filter) -> Unit,
+    selectedTopBarItem: TopBarItems,
+    onItemClick: (TopBarItems) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(size60dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
+    Box(
+        contentAlignment = Alignment.CenterStart
     ) {
-        Filter.entries.forEach { item ->
-            FilterItem(
-                title = stringResource(id = item.titleResId),
-                selected = item.section == currentFilterSection.section,
-                onItemClick = { onItemClick(item) }
-            )
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(size60dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            TopBarItems.entries.forEach { item ->
+                FilterItem(
+                    title = stringResource(id = item.titleResId),
+                    selected = item.section == selectedTopBarItem.section,
+                    onItemClick = { onItemClick(item) }
+                )
+            }
         }
     }
 }

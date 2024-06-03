@@ -2,8 +2,7 @@ package com.mihan.movie.library.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val primaryColor = Color(0xFFFF0000)
-val secondaryColor = Color(0xFF03A9F4)
+val dialogBgColor = Color(0xFF444444)
 val backgroundColor = Color(0xFF000000)
 val onBackgroundColor = Color(0xFFFFFFFF)
 

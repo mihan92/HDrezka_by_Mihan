@@ -8,7 +8,7 @@ data class VideoDto(
     val translations: Map<String, String> = emptyMap()
 )
 
-fun VideoDto.toVideoModel() = VideoInfoModel(
+fun VideoDto.toVideoInfoModel() = VideoInfoModel(
     isVideoHasTranslations = isVideoHasTranslations,
     isVideoHasSeries = isVideoHasSeries,
     translations = translations

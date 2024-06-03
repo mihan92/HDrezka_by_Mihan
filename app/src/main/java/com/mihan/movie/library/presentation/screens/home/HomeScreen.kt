@@ -13,7 +13,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -30,9 +32,11 @@ import com.mihan.movie.library.domain.models.VideoItemModel
 import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
 import com.mihan.movie.library.presentation.screens.destinations.DetailVideoScreenDestination
 import com.mihan.movie.library.presentation.ui.size10dp
+import com.mihan.movie.library.presentation.ui.view.FilterDialog
 import com.mihan.movie.library.presentation.ui.view.MovieItem
 import com.mihan.movie.library.presentation.ui.view.PageFooter
 import com.mihan.movie.library.presentation.ui.view.TopAppBar
+import com.mihan.movie.library.presentation.ui.view.TopBarItems
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
@@ -46,13 +50,22 @@ fun HomeScreen(
     navigator: DestinationsNavigator
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle(HomeScreenState())
-    val filterState by viewModel.filterState.collectAsStateWithLifecycle()
-    val currentPage by viewModel.pageState.collectAsStateWithLifecycle()
+    val selectedTopBarItem by viewModel.topBarState.collectAsStateWithLifecycle()
+    val currentDefaultPage by viewModel.currentDefaultListPage.collectAsStateWithLifecycle()
+    val currentFilteredPage by viewModel.currentFilteredListPage.collectAsStateWithLifecycle()
     val videoCategory by viewModel.videoCategoryState.collectAsStateWithLifecycle()
+    val categoryFilter by viewModel.categoryFilter.collectAsStateWithLifecycle()
+    val genreFilter by viewModel.genreFilter.collectAsStateWithLifecycle()
+    val moviePeriod by viewModel.moviePeriod.collectAsStateWithLifecycle()
+    var showFilterDialog by remember { mutableStateOf(false) }
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
-            currentFilterSection = filterState,
-            onItemClick = viewModel::onTopBarItemClicked
+            selectedTopBarItem = selectedTopBarItem,
+            onItemClick = {
+                viewModel.onTopBarItemClicked(it)
+                if (it == TopBarItems.Filter)
+                    showFilterDialog = true
+            },
         )
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -61,18 +74,37 @@ fun HomeScreen(
             if (screenState.isLoading)
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             if (screenState.data.isNotEmpty()) {
-                var page = currentPage
+                var page = if (selectedTopBarItem == TopBarItems.Filter) currentFilteredPage else currentDefaultPage
                 Content(
                     listOfVideos = screenState.data,
                     navigator = navigator,
-                    currentPage = currentPage,
+                    currentPage = page,
                     previousPageClick = { viewModel.onPageChanged(--page) },
                     nextPageClick = { viewModel.onPageChanged(++page) }
                 )
             }
+            FilterDialog(
+                categoryFilter = categoryFilter,
+                genreFilter = genreFilter,
+                moviePeriod = moviePeriod,
+                showDialog = showFilterDialog,
+                onButtonSearchClick = { category, genre, moviePeriod ->
+                    viewModel.onFilterDialogButtonSearchPressed(category, genre, moviePeriod, page = 1)
+                    showFilterDialog = false
+                },
+                onCollectionItemClick = { category, movieCollection ->
+                    viewModel.onFilterDialogCollectionItemPressed(category, movieCollection, page = 1)
+                    showFilterDialog = false
+                },
+                onDismissRequest = {
+                    viewModel.onTopBarItemClicked(TopBarItems.Watching)
+                    showFilterDialog = false
+                }
+            )
         }
     }
-    LaunchedEffect(key1 = currentPage, key2 = filterState, key3 = videoCategory) {
+    LaunchedEffect(key1 = currentDefaultPage, key2 = selectedTopBarItem, key3 = videoCategory) {
+        if (selectedTopBarItem == TopBarItems.Filter) return@LaunchedEffect
         viewModel.getListVideo()
     }
 }

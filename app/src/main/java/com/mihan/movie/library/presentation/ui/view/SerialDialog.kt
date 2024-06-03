@@ -51,6 +51,7 @@ import com.mihan.movie.library.presentation.ui.size16dp
 import com.mihan.movie.library.presentation.ui.size16sp
 import com.mihan.movie.library.presentation.ui.size28dp
 import com.mihan.movie.library.presentation.ui.size8dp
+import com.mihan.movie.library.presentation.ui.theme.dialogBgColor
 
 private const val DIALOG_RATIO = 2 / 1.5f
 
@@ -71,7 +72,7 @@ fun SerialDialog(
                 modifier = modifier
                     .fillMaxSize()
                     .aspectRatio(DIALOG_RATIO)
-                    .background(Color.DarkGray),
+                    .background(dialogBgColor),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 ExpandableTranslationList(
