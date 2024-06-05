@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mihan.movie.library.common.Constants
 import com.mihan.movie.library.common.DataStorePrefs
-import com.mihan.movie.library.common.entites.Colors
-import com.mihan.movie.library.common.entites.VideoCategory
-import com.mihan.movie.library.common.entites.VideoQuality
+import com.mihan.movie.library.common.models.Colors
+import com.mihan.movie.library.common.models.VideoCategory
+import com.mihan.movie.library.common.models.VideoQuality
 import com.mihan.movie.library.common.utils.whileUiSubscribed
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

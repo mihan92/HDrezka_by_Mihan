@@ -4,18 +4,27 @@ import android.net.Uri
 import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.common.Constants
 import com.mihan.movie.library.common.DataStorePrefs
-import com.mihan.movie.library.common.entites.Filter
-import com.mihan.movie.library.common.entites.VideoCategory
-import com.mihan.movie.library.common.extentions.logger
+import com.mihan.movie.library.common.models.CategoryFilter
+import com.mihan.movie.library.common.models.GenreFilter
+import com.mihan.movie.library.common.models.MovieCollections
+import com.mihan.movie.library.common.models.MoviePeriod
+import com.mihan.movie.library.common.models.VideoCategory
 import com.mihan.movie.library.data.local.LocalRezkaParser
-import com.mihan.movie.library.data.models.BaseUrlModelDto
-import com.mihan.movie.library.data.models.SeasonModelDto
-import com.mihan.movie.library.data.models.StreamDto
-import com.mihan.movie.library.data.models.VideoDetailDto
-import com.mihan.movie.library.data.models.VideoDto
-import com.mihan.movie.library.data.models.VideoItemDto
+import com.mihan.movie.library.data.models.toBaseUrlModel
+import com.mihan.movie.library.data.models.toSerialModel
+import com.mihan.movie.library.data.models.toStreamModel
+import com.mihan.movie.library.data.models.toVideoDetail
+import com.mihan.movie.library.data.models.toVideoInfoModel
+import com.mihan.movie.library.data.models.toVideoItemModel
 import com.mihan.movie.library.data.remote.RemoteParserApiService
 import com.mihan.movie.library.domain.ParserRepository
+import com.mihan.movie.library.domain.models.BaseUrlModel
+import com.mihan.movie.library.domain.models.SerialModel
+import com.mihan.movie.library.domain.models.StreamModel
+import com.mihan.movie.library.domain.models.VideoDetailModel
+import com.mihan.movie.library.domain.models.VideoInfoModel
+import com.mihan.movie.library.domain.models.VideoItemModel
+import com.mihan.movie.library.presentation.ui.view.TopBarItems
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -24,7 +33,7 @@ import javax.inject.Inject
 
 @ActivityRetainedScoped
 class ParserRepositoryImpl @Inject constructor(
-    private val remoteParser: RemoteParserApiService,
+    private val remoteParserApi: RemoteParserApiService,
     private val localParser: LocalRezkaParser,
     private val dataStorePrefs: DataStorePrefs
 ) : ParserRepository {
@@ -32,19 +41,20 @@ class ParserRepositoryImpl @Inject constructor(
     private suspend fun isRemoteParsing() = dataStorePrefs.getRemoteParsing().first()
 
     override suspend fun getListVideo(
-        filter: Filter,
+        topBarItems: TopBarItems,
         videoCategory: VideoCategory,
         page: Int
-    ): ApiResponse<List<VideoItemDto>> =
+    ): ApiResponse<List<VideoItemModel>> =
         if (isRemoteParsing()) {
             withContext(Dispatchers.IO) {
                 runCatching {
-                    remoteParser.getListVideo(filter.section, videoCategory.genre, page).execute()
+                    remoteParserApi.getListVideo(topBarItems.section, videoCategory.genre, page).execute()
                 }.fold(
                     { response ->
-                        if (response.isSuccessful && response.body() != null)
-                            ApiResponse.Success(response.body() ?: emptyList())
-                        else
+                        if (response.isSuccessful && response.body() != null) {
+                            val itemList = response.body()?.map { it.toVideoItemModel() }
+                            ApiResponse.Success(itemList ?: emptyList())
+                        } else
                             ApiResponse.Error(response.errorBody()?.string() ?: "getListVideo api error")
                     },
                     { error -> ApiResponse.Error("getListVideo error: ${error.message}") }
@@ -52,24 +62,73 @@ class ParserRepositoryImpl @Inject constructor(
             }
         } else {
             runCatching {
-                localParser.getListVideo(filter, videoCategory, page)
+                localParser.getListVideo(topBarItems, videoCategory, page).map { it.toVideoItemModel() }
             }.fold(
                 { result -> ApiResponse.Success(result) },
                 { error -> ApiResponse.Error("getListVideo error: ${error.message}") }
             )
         }
 
-    override suspend fun getDetailVideoByUrl(url: String): ApiResponse<VideoDetailDto> =
+    override suspend fun getFilteredListVideo(
+        category: CategoryFilter,
+        genre: GenreFilter,
+        moviePeriod: MoviePeriod,
+        page: Int
+    ): ApiResponse<List<VideoItemModel>> = withContext(Dispatchers.IO) {
+        if (isRemoteParsing()) {
+            runCatching {
+                remoteParserApi.getFilteredListVideo(category.name, genre.name, moviePeriod.name, page).execute()
+            }.fold(
+                { response ->
+                    if (response.isSuccessful && response.body() != null) {
+                        val list = response.body()?.map { it.toVideoItemModel() }
+                        ApiResponse.Success(list ?: emptyList())
+                    } else
+                        ApiResponse.Error(response.errorBody()?.string() ?: "getFilteredListVideo api error")
+                },
+                { error -> ApiResponse.Error("getFilteredListVideo error: ${error.message}") }
+            )
+        } else {
+            runCatching {
+                localParser.getFilteredListVideo(category, genre, moviePeriod, page).map { it.toVideoItemModel() }
+            }.fold(
+                { result -> ApiResponse.Success(result) },
+                { error -> ApiResponse.Error("getFilteredListVideo error: ${error.message}") }
+            )
+        }
+    }
+
+    override suspend fun getCollectionsListVideo(
+        category: CategoryFilter,
+        movieCollection: MovieCollections,
+        page: Int
+    ): ApiResponse<List<VideoItemModel>> = withContext(Dispatchers.IO) {
+        runCatching {
+            remoteParserApi.getCollectionsListVideo(category.name, movieCollection.name, page).execute()
+        }.fold(
+            { response ->
+                if (response.isSuccessful && response.body() != null) {
+                    val list = response.body()?.map { it.toVideoItemModel() }
+                    ApiResponse.Success(list ?: emptyList())
+                } else
+                    ApiResponse.Error(response.errorBody()?.string() ?: "getCollectionsListVideo api error")
+            },
+            { error -> ApiResponse.Error("getCollectionsListVideo error: ${error.message}") }
+        )
+    }
+
+    override suspend fun getDetailVideoByUrl(url: String): ApiResponse<VideoDetailModel> =
         if (isRemoteParsing()) {
             withContext(Dispatchers.IO) {
                 runCatching {
                     val urlPath = Uri.parse(url).path ?: Constants.EMPTY_STRING
-                    remoteParser.getDetailVideoByUrl(urlPath).execute()
+                    remoteParserApi.getDetailVideoByUrl(urlPath).execute()
                 }.fold(
                     { response ->
-                        if (response.isSuccessful && response.body() != null)
-                            ApiResponse.Success(response.body()!!)
-                        else
+                        if (response.isSuccessful && response.body() != null) {
+                            val item = response.body()!!.toVideoDetail()
+                            ApiResponse.Success(item)
+                        } else
                             ApiResponse.Error(response.errorBody()?.string() ?: "getDetailVideoByUrl api error")
                     },
                     { error -> ApiResponse.Error("getDetailVideoByUrl error: ${error.message}") }
@@ -78,23 +137,24 @@ class ParserRepositoryImpl @Inject constructor(
             }
         } else {
             runCatching {
-                localParser.getDetailVideoByUrl(url)
+                localParser.getDetailVideoByUrl(url).toVideoDetail()
             }.fold(
                 { result -> ApiResponse.Success(result) },
                 { error -> ApiResponse.Error("getDetailVideoByUrl error: ${error.message}") }
             )
         }
 
-    override suspend fun getTranslationsByUrl(url: String): ApiResponse<VideoDto> =
+    override suspend fun getTranslationsByUrl(url: String): ApiResponse<VideoInfoModel> =
         if (isRemoteParsing())
             withContext(Dispatchers.IO) {
                 runCatching {
                     val urlPath = Uri.parse(url).path ?: Constants.EMPTY_STRING
-                    remoteParser.getTranslationsByUrl(urlPath).execute()
+                    remoteParserApi.getTranslationsByUrl(urlPath).execute()
                 }.fold(
                     { response ->
                         if (response.isSuccessful && response.body() != null) {
-                            ApiResponse.Success(response.body()!!)
+                            val videoInfoModel = response.body()!!.toVideoInfoModel()
+                            ApiResponse.Success(videoInfoModel)
                         } else
                             ApiResponse.Error(response.errorBody()?.string() ?: "getTranslationsByUrl api error")
                     },
@@ -103,7 +163,7 @@ class ParserRepositoryImpl @Inject constructor(
             }
         else {
             runCatching {
-                localParser.getTranslationsByUrl(url)
+                localParser.getTranslationsByUrl(url).toVideoInfoModel()
             }.fold(
                 { result -> ApiResponse.Success(result) },
                 { error -> ApiResponse.Error("getTranslationsByUrl error: ${error.message}") }
@@ -115,51 +175,36 @@ class ParserRepositoryImpl @Inject constructor(
         filmId: String,
         season: String,
         episode: String
-    ): ApiResponse<StreamDto> =
+    ): ApiResponse<StreamModel> =
         runCatching {
-            localParser.getStreamsBySeasonId(translationId, filmId, season, episode)
+            localParser.getStreamsBySeasonId(translationId, filmId, season, episode).toStreamModel()
         }.fold(
             { result -> ApiResponse.Success(result) },
             { error -> ApiResponse.Error("getStreamsBySeasonId error: ${error.message}") }
         )
 
-    override suspend fun getVideosByTitle(videoTitle: String): ApiResponse<List<VideoItemDto>> =
-//        if (isRemoteParsing())
-//            withContext(Dispatchers.IO) {
-//                runCatching {
-//                    remoteParser.getVideosByTitle(videoTitle).execute()
-//                }.fold(
-//                    { response ->
-//                        if (response.isSuccessful && response.body() != null)
-//                            ApiResponse.Success(response.body()!!)
-//                        else
-//                            ApiResponse.Error(response.errorBody()?.string() ?: "getVideosByTitle api error")
-//                    },
-//                    { error -> ApiResponse.Error("getVideosByTitle error: ${error.message}") }
-//                )
-//            }
-//        else {
-            runCatching {
-                localParser.getVideosByTitle(videoTitle)
-            }.fold(
-                { result -> ApiResponse.Success(result) },
-                { error -> ApiResponse.Error("getVideosByTitle error: ${error.message}") }
-            )
-//        }
+    override suspend fun getVideosByTitle(videoTitle: String): ApiResponse<List<VideoItemModel>> =
+        runCatching {
+            localParser.getVideosByTitle(videoTitle).map { list -> list.toVideoItemModel() }
+        }.fold(
+            { result -> ApiResponse.Success(result) },
+            { error -> ApiResponse.Error("getVideosByTitle error: ${error.message}") }
+        )
 
     override suspend fun getSeasonsByTranslatorId(
         translatorId: String,
         filmId: String
-    ): ApiResponse<List<SeasonModelDto>> =
+    ): ApiResponse<List<SerialModel>> =
         if (isRemoteParsing())
             withContext(Dispatchers.IO) {
                 runCatching {
-                    remoteParser.getSeasonsByTranslatorId(translatorId).execute()
+                    remoteParserApi.getSeasonsByTranslatorId(translatorId).execute()
                 }.fold(
                     { response ->
-                        if (response.isSuccessful && response.body() != null)
-                            ApiResponse.Success(response.body()!!)
-                        else
+                        if (response.isSuccessful && response.body() != null) {
+                            val serialModelList = response.body()!!.map { it.toSerialModel() }
+                            ApiResponse.Success(serialModelList)
+                        } else
                             ApiResponse.Error(response.errorBody()?.string() ?: "getSeasonsByTranslatorId api error")
                     },
                     { error -> ApiResponse.Error("getSeasonsByTranslatorId error: ${error.message}") }
@@ -168,31 +213,32 @@ class ParserRepositoryImpl @Inject constructor(
             }
         else {
             runCatching {
-                localParser.getSeasonsByTranslatorId(translatorId, filmId)
+                localParser.getSeasonsByTranslatorId(translatorId, filmId).map { it.toSerialModel() }
             }.fold(
                 { result -> ApiResponse.Success(result) },
                 { error -> ApiResponse.Error("getSeasonsByTranslatorId error: ${error.message}") }
             )
         }
 
-    override suspend fun getBaseUrl(): ApiResponse<BaseUrlModelDto> =
+    override suspend fun getBaseUrl(): ApiResponse<BaseUrlModel> =
         withContext(Dispatchers.IO) {
             runCatching {
-                remoteParser.getBaseUrl().execute()
+                remoteParserApi.getBaseUrl().execute()
             }.fold(
                 { response ->
-                    if (response.isSuccessful && response.body() != null)
-                        ApiResponse.Success(response.body()!!)
-                    else
+                    if (response.isSuccessful && response.body() != null) {
+                        val urlModel = response.body()!!.toBaseUrlModel()
+                        ApiResponse.Success(urlModel)
+                    } else
                         ApiResponse.Error(response.errorBody()?.string() ?: "getBaseUrl error")
                 },
                 { error -> ApiResponse.Error("getBaseUrl error: ${error.message}") }
             )
         }
 
-    override suspend fun getStreamByTranslatorId(translatorId: String, filmId: String): ApiResponse<StreamDto> =
+    override suspend fun getStreamByTranslatorId(translatorId: String, filmId: String): ApiResponse<StreamModel> =
         runCatching {
-            localParser.getStreamsByTranslationId(translatorId, filmId)
+            localParser.getStreamsByTranslationId(translatorId, filmId).toStreamModel()
         }.fold(
             { result -> ApiResponse.Success(result) },
             { error -> ApiResponse.Error("getStreamsByTranslatorId error: ${error.message}") }

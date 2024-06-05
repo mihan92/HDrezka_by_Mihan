@@ -5,12 +5,11 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.common.DataStorePrefs
-import com.mihan.movie.library.common.entites.Filter
 import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.common.utils.IDownloadManager
 import com.mihan.movie.library.domain.usecases.GetBaseUrlUseCase
-import com.mihan.movie.library.domain.usecases.GetListVideoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -22,7 +21,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SplashViewModel @Inject constructor(
-    private val getListVideoUseCase: GetListVideoUseCase,
     private val dataStorePrefs: DataStorePrefs,
     private val getBaseUrlUseCase: GetBaseUrlUseCase,
     private val eventManager: EventManager,
@@ -36,14 +34,17 @@ class SplashViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             getBaseUrl()
-            getListVideo()
             downloadManager.deleteOldApk()
         }
     }
 
     private suspend fun getBaseUrl() {
         val isAutoUpdateEnabled = dataStorePrefs.getAutoUpdate().first()
-        if (!isAutoUpdateEnabled) return
+        if (!isAutoUpdateEnabled) {
+            delay(SPLASH_SCREEN_DELAY_TIME)
+            _screenState.update { SplashScreenState(toNextScreen = true) }
+            return
+        }
         getBaseUrlUseCase().onEach { result ->
             when (result) {
                 is ApiResponse.Success -> {
@@ -56,21 +57,11 @@ class SplashViewModel @Inject constructor(
                 is ApiResponse.Error -> eventManager.sendEvent(result.errorMessage)
                 is ApiResponse.Loading -> Unit
             }
+            _screenState.update { SplashScreenState(toNextScreen = true) }
         }.last()
     }
 
-    private suspend fun getListVideo() {
-            val videoCategory = dataStorePrefs.getVideoCategory().first()
-            getListVideoUseCase(Filter.Watching, videoCategory, FIRST_PAGE).onEach { result ->
-                when (result) {
-                    is ApiResponse.Error -> _screenState.update { SplashScreenState(toNextScreen = true) }
-                    is ApiResponse.Loading -> Unit
-                    is ApiResponse.Success -> _screenState.update { SplashScreenState(success = true, toNextScreen = true) }
-                }
-            }.last()
-    }
-
     companion object {
-        private const val FIRST_PAGE = 1
+        private const val SPLASH_SCREEN_DELAY_TIME = 1500L
     }
 }

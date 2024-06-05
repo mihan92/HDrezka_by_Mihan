@@ -39,9 +39,9 @@ import androidx.tv.material3.SwitchDefaults
 import androidx.tv.material3.Text
 import com.mihan.movie.library.BuildConfig
 import com.mihan.movie.library.R
-import com.mihan.movie.library.common.entites.Colors
-import com.mihan.movie.library.common.entites.VideoCategory
-import com.mihan.movie.library.common.entites.VideoQuality
+import com.mihan.movie.library.common.models.Colors
+import com.mihan.movie.library.common.models.VideoCategory
+import com.mihan.movie.library.common.models.VideoQuality
 import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
 import com.mihan.movie.library.presentation.ui.size10dp
 import com.mihan.movie.library.presentation.ui.size14sp

@@ -17,8 +17,8 @@ android {
         applicationId = "com.mihan.movie.library"
         minSdk = 28
         targetSdk = 34
-        versionCode = 13
-        versionName = "0.7.2"
+        versionCode = 15
+        versionName = "0.8.1"
         vectorDrawables {
             useSupportLibrary = true
         }

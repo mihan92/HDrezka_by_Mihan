@@ -1,7 +1,6 @@
 package com.mihan.movie.library.domain.usecases
 
 import com.mihan.movie.library.common.ApiResponse
-import com.mihan.movie.library.data.models.toVideoModel
 import com.mihan.movie.library.domain.ParserRepository
 import com.mihan.movie.library.domain.models.VideoInfoModel
 import kotlinx.coroutines.flow.Flow
@@ -14,7 +13,7 @@ class GetTranslationsByUrlUseCase @Inject constructor(private val parserReposito
         when (val result = parserRepository.getTranslationsByUrl(filmUrl)) {
             is ApiResponse.Loading -> Unit
             is ApiResponse.Error -> emit(ApiResponse.Error(result.errorMessage))
-            is ApiResponse.Success -> emit(ApiResponse.Success(result.data.toVideoModel()))
+            is ApiResponse.Success -> emit(ApiResponse.Success(result.data))
         }
     }
 }

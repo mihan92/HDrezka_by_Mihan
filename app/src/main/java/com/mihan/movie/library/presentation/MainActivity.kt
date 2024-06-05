@@ -28,7 +28,7 @@ import androidx.tv.material3.Surface
 import androidx.tv.material3.rememberDrawerState
 import com.mihan.movie.library.R
 import com.mihan.movie.library.common.DataStorePrefs
-import com.mihan.movie.library.common.entites.Colors
+import com.mihan.movie.library.common.models.Colors
 import com.mihan.movie.library.common.extentions.logger
 import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.common.utils.AppUpdatesChecker

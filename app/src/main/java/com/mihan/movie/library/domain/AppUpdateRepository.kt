@@ -1,7 +1,7 @@
 package com.mihan.movie.library.domain
 
-import com.mihan.movie.library.data.models.ChangelogDto
+import com.mihan.movie.library.domain.models.ChangelogModel
 
 interface AppUpdateRepository {
-    suspend fun checkUpdates(): ChangelogDto
+    suspend fun checkUpdates(): ChangelogModel
 }

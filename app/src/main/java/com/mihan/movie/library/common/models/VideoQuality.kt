@@ -1,4 +1,4 @@
-package com.mihan.movie.library.common.entites
+package com.mihan.movie.library.common.models
 
 enum class VideoQuality(val quality: String) {
     Quality360("360p"),

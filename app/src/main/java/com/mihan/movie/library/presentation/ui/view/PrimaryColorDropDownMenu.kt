@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpOffset
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
-import com.mihan.movie.library.common.entites.Colors
+import com.mihan.movie.library.common.models.Colors
 import com.mihan.movie.library.presentation.ui.size100dp
 import com.mihan.movie.library.presentation.ui.size16dp
 import com.mihan.movie.library.presentation.ui.size20dp

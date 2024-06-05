@@ -4,9 +4,11 @@ import android.content.Context
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.compose.DialogNavigator
+import com.mihan.movie.library.data.local.cache.CachingManager
 import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.common.utils.EventManagerImpl
 import com.mihan.movie.library.common.utils.VoiceRecognizer
+import com.mihan.movie.library.data.models.VideoItemDto
 import com.mihan.movie.library.data.repository.AppUpdateRepositoryImpl
 import com.mihan.movie.library.data.repository.FavouritesRepositoryImpl
 import com.mihan.movie.library.data.repository.LocalVideoVideoHistoryRepositoryImpl
@@ -42,6 +44,9 @@ interface ActivityRetainedModule {
     fun bindsEventManager(impl: EventManagerImpl): EventManager
 
     companion object {
+
+        @[Provides ActivityRetainedScoped]
+        fun provideListVideoCachingManager() = CachingManager<String, List<VideoItemDto>>()
 
         @[Provides ActivityRetainedScoped]
         fun provideVoiceRecognizer(@ApplicationContext context: Context) = VoiceRecognizer(context)

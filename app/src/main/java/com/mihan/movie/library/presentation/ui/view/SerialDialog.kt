@@ -7,11 +7,12 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
@@ -29,12 +30,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.tv.foundation.lazy.list.TvLazyColumn
 import androidx.tv.foundation.lazy.list.TvLazyListScope
@@ -50,9 +53,12 @@ import com.mihan.movie.library.presentation.ui.size14sp
 import com.mihan.movie.library.presentation.ui.size16dp
 import com.mihan.movie.library.presentation.ui.size16sp
 import com.mihan.movie.library.presentation.ui.size28dp
+import com.mihan.movie.library.presentation.ui.size4dp
 import com.mihan.movie.library.presentation.ui.size8dp
+import com.mihan.movie.library.presentation.ui.theme.dialogBgColor
 
-private const val DIALOG_RATIO = 2 / 1.5f
+private val DIALOG_WIDTH = 350.dp
+private val DIALOG_HEIGHT = 300.dp
 
 @Composable
 fun SerialDialog(
@@ -68,11 +74,13 @@ fun SerialDialog(
     if (isDialogShow.value) {
         Dialog(onDismissRequest = onDialogDismiss) {
             Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = modifier
-                    .fillMaxSize()
-                    .aspectRatio(DIALOG_RATIO)
-                    .background(Color.DarkGray),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .clip(RoundedCornerShape(size10dp))
+                    .background(dialogBgColor)
+                    .padding(vertical = size8dp)
+                    .width(DIALOG_WIDTH)
+                    .height(DIALOG_HEIGHT)
             ) {
                 ExpandableTranslationList(
                     translations = translations.keys.toList(),
@@ -190,7 +198,7 @@ private fun SectionHeader(
             .fillMaxWidth()
             .clickable { onHeaderClicked() }
             .background(Color.DarkGray)
-            .padding(vertical = size8dp),
+            .padding(vertical = size4dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

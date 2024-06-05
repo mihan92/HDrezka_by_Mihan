@@ -4,14 +4,18 @@ import android.util.ArrayMap
 import android.util.Patterns
 import com.mihan.movie.library.common.Constants
 import com.mihan.movie.library.common.DataStorePrefs
-import com.mihan.movie.library.common.entites.Filter
-import com.mihan.movie.library.common.entites.VideoCategory
 import com.mihan.movie.library.common.extentions.logger
-import com.mihan.movie.library.data.models.SeasonModelDto
+import com.mihan.movie.library.common.models.CategoryFilter
+import com.mihan.movie.library.common.models.GenreFilter
+import com.mihan.movie.library.common.models.MoviePeriod
+import com.mihan.movie.library.common.models.VideoCategory
+import com.mihan.movie.library.data.local.cache.CachingManager
+import com.mihan.movie.library.data.models.SerialModelDto
 import com.mihan.movie.library.data.models.StreamDto
 import com.mihan.movie.library.data.models.VideoDetailDto
 import com.mihan.movie.library.data.models.VideoDto
 import com.mihan.movie.library.data.models.VideoItemDto
+import com.mihan.movie.library.presentation.ui.view.TopBarItems
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,22 +35,13 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 
 @ActivityRetainedScoped
 class LocalRezkaParser @Inject constructor(
-    private val dataStorePrefs: DataStorePrefs
+    private val dataStorePrefs: DataStorePrefs,
+    private val cachingManager: CachingManager<String, List<VideoItemDto>>
 ) : CoroutineScope {
     override val coroutineContext: CoroutineContext = SupervisorJob() + Dispatchers.IO
 
     private suspend fun getBaseUrl() = dataStorePrefs.getBaseUrl().first()
     private suspend fun getVideoQuality() = dataStorePrefs.getVideoQuality().first().quality
-
-    /**
-     * Кэшируем список фильмов после первой загрузки, чтобы при каждом обращении не качать его снова.
-     * Если текущие данные совпадают, то отдаем лист с кэшированными данными, если нет, качаем порцию фильмов снова.
-     */
-    private val cashedListVideo = mutableListOf<VideoItemDto>()
-    private var currentPage = -1
-    private var currentFilter = Filter.Watching
-    private var currentVideoCategory = VideoCategory.All
-    private var currentBaseUrl = Constants.EMPTY_STRING
 
     private fun getConnection(filmUrl: String): Connection = Jsoup
         .connect(filmUrl)
@@ -62,56 +57,72 @@ class LocalRezkaParser @Inject constructor(
             "${getBaseUrl()}/?filter=$section$genre"
     }
 
+    private suspend fun getFilteredListUrl(category: String, genre: String, period: String, page: Int): String {
+        return "${getBaseUrl()}/$category/best$genre$period/page/$page/".lowercase()
+    }
+
     /**
-     * Из главной страницы получаем список видосов
+     * Из главной страницы получаем список видосов. Кэшируем их и при повторном вызове отдаем из кэша
      */
     suspend fun getListVideo(
-        filter: Filter,
+        topBarItems: TopBarItems,
         videoCategory: VideoCategory,
         page: Int,
-    ): List<VideoItemDto> =
-        withContext(Dispatchers.IO) {
-            if (currentFilter == filter
-                && currentVideoCategory == videoCategory
-                && currentPage == page
-                && getBaseUrl() == currentBaseUrl
-                && cashedListVideo.isNotEmpty()
-            ) {
-                cashedListVideo.toList()
-            } else {
-                cashedListVideo.clear()
-                val document = getConnection(getUrl(page, filter.section, videoCategory.genre)).get()
-                val element = document.select("div.b-content__inline_item")
-                for (i in 0 until element.size) {
-                    val title = element.select("div.b-content__inline_item-link")
-                        .select("a")
-                        .eq(i)
-                        .text()
-                    val imageUrl = element.select("img")
-                        .eq(i)
-                        .attr("src")
-                    val movieUrl = element.select("div.b-content__inline_item-cover")
-                        .select("a")
-                        .eq(i)
-                        .attr("href")
-                    val category = element.select("i.entity")
-                        .eq(i)
-                        .text()
-                    val movie = VideoItemDto(
-                        title = title,
-                        category = category,
-                        imageUrl = imageUrl,
-                        videoUrl = movieUrl
-                    )
-                    cashedListVideo.add(movie)
-                }
-                currentFilter = filter
-                currentVideoCategory = videoCategory
-                currentPage = page
-                currentBaseUrl = getBaseUrl()
-                cashedListVideo.toList()
-            }
+    ): List<VideoItemDto> = withContext(Dispatchers.IO) {
+        val url = getUrl(page, topBarItems.section, videoCategory.genre)
+        cachingManager.getCachingData(key = url)?.let { cachedList ->
+            return@withContext cachedList
         }
+        val document = getConnection(url).get()
+        val moviesList = fetchMoviesFromDocument(document)
+        cachingManager.putToCache(url, moviesList)
+        moviesList
+    }
+
+    suspend fun getFilteredListVideo(
+        categoryFilter: CategoryFilter,
+        genreFilter: GenreFilter,
+        moviePeriod: MoviePeriod,
+        page: Int
+    ): List<VideoItemDto> = withContext(Dispatchers.IO) {
+        val genre = if (genreFilter == GenreFilter.ANY_GENRE) "" else "/${genreFilter.name}"
+        val period = if (moviePeriod == MoviePeriod.ALL_TIME) "" else "/${moviePeriod.value}"
+        val url = getFilteredListUrl(categoryFilter.name, genre, period, page)
+        cachingManager.getCachingData(key = url)?.let { cachedList ->
+            return@withContext cachedList
+        }
+        val document = getConnection(url).get()
+        val moviesList = fetchMoviesFromDocument(document)
+        cachingManager.putToCache(url, moviesList)
+        moviesList
+    }
+
+    private fun fetchMoviesFromDocument(document: Document): List<VideoItemDto> = buildList {
+        val element = document.select("div.b-content__inline_item")
+        for (i in 0 until element.size) {
+            val title = element.select("div.b-content__inline_item-link")
+                .select("a")
+                .eq(i)
+                .text()
+            val imageUrl = element.select("img")
+                .eq(i)
+                .attr("src")
+            val movieUrl = element.select("div.b-content__inline_item-cover")
+                .select("a")
+                .eq(i)
+                .attr("href")
+            val category = element.select("i.entity")
+                .eq(i)
+                .text()
+            val movie = VideoItemDto(
+                title = title,
+                category = category,
+                imageUrl = imageUrl,
+                videoUrl = movieUrl
+            )
+            add(movie)
+        }
+    }
 
     /**
      * Получаем всю детальную инфу о видосе и выводим на экране детальной информации
@@ -281,7 +292,7 @@ class LocalRezkaParser @Inject constructor(
         }
     }
 
-    suspend fun getSeasonsByTranslatorId(translatorId: String, filmId: String): List<SeasonModelDto> =
+    suspend fun getSeasonsByTranslatorId(translatorId: String, filmId: String): List<SerialModelDto> =
         withContext(Dispatchers.IO) {
             buildList {
                 val data: ArrayMap<String, String> = ArrayMap()
@@ -296,7 +307,7 @@ class LocalRezkaParser @Inject constructor(
                     if (jsonObject.getBoolean("success")) {
                         val map = parseSeasons(Jsoup.parse(jsonObject.getString("episodes")))
                         map.entries.forEach {
-                            add(SeasonModelDto(it.key, it.value))
+                            add(SerialModelDto(it.key, it.value))
                         }
                     }
                 } else {

@@ -18,7 +18,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
-import com.mihan.movie.library.common.entites.VideoQuality
+import com.mihan.movie.library.common.models.VideoQuality
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable

@@ -1,4 +1,4 @@
-package com.mihan.movie.library.common.entites
+package com.mihan.movie.library.common.models
 
 import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.Color
