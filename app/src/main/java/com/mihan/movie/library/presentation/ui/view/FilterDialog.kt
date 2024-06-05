@@ -57,7 +57,6 @@ import com.mihan.movie.library.presentation.ui.size4dp
 import com.mihan.movie.library.presentation.ui.size8dp
 import com.mihan.movie.library.presentation.ui.sizeEmpty
 import com.mihan.movie.library.presentation.ui.theme.dialogBgColor
-import com.ramcosta.composedestinations.spec.DestinationStyle.Dialog.Default.properties
 import kotlinx.coroutines.launch
 
 private val DIALOG_WIDTH = 590.dp
@@ -177,14 +176,7 @@ fun FilterDialog(
                 }
             },
             confirmButton = {},
-            properties = properties.let {
-                DialogProperties(
-                    dismissOnBackPress = it.dismissOnBackPress,
-                    dismissOnClickOutside = it.dismissOnClickOutside,
-                    securePolicy = it.securePolicy,
-                    usePlatformDefaultWidth = false
-                )
-            },
+            properties = DialogProperties(usePlatformDefaultWidth = false),
             modifier = Modifier
                 .width(DIALOG_WIDTH)
                 .height(DIALOG_HEIGHT)

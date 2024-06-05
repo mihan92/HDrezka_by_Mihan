@@ -73,7 +73,7 @@ class DataStorePrefs @Inject constructor(@ApplicationContext context: Context) {
 
     fun getRemoteParsing(): Flow<Boolean> =
         dataStore.data.map { prefs ->
-            prefs[REMOTE_PARSING_KEY] ?: false
+            prefs[REMOTE_PARSING_KEY] ?: true
         }
 
     suspend fun setRemoteParsing(isSelected: Boolean) {
@@ -100,7 +100,7 @@ class DataStorePrefs @Inject constructor(@ApplicationContext context: Context) {
         private val VIDEO_QUALITY_KEY = stringPreferencesKey("video_quality")
         private val BASE_URL_KEY = stringPreferencesKey("base_url")
         private val PRIMARY_COLOR_KEY = stringPreferencesKey("primary_color")
-        private val REMOTE_PARSING_KEY = booleanPreferencesKey("remote_parsing")
+        private val REMOTE_PARSING_KEY = booleanPreferencesKey("remote_parsing_key")
         private val AUTO_UPDATE_KEY = booleanPreferencesKey("auto_update")
         private val DEFAULT_VIDEO_CATEGORY = VideoCategory.All
         private val DEFAULT_VIDEO_QUALITY = VideoQuality.Quality1080

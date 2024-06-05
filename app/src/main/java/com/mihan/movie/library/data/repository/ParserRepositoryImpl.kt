@@ -75,18 +75,27 @@ class ParserRepositoryImpl @Inject constructor(
         moviePeriod: MoviePeriod,
         page: Int
     ): ApiResponse<List<VideoItemModel>> = withContext(Dispatchers.IO) {
-        runCatching {
-            remoteParserApi.getFilteredListVideo(category.name, genre.name, moviePeriod.name, page).execute()
-        }.fold(
-            { response ->
-                if (response.isSuccessful && response.body() != null) {
-                    val list = response.body()?.map { it.toVideoItemModel() }
-                    ApiResponse.Success(list ?: emptyList())
-                } else
-                    ApiResponse.Error(response.errorBody()?.string() ?: "getFilteredListVideo api error")
-            },
-            { error -> ApiResponse.Error("getFilteredListVideo error: ${error.message}") }
-        )
+        if (isRemoteParsing()) {
+            runCatching {
+                remoteParserApi.getFilteredListVideo(category.name, genre.name, moviePeriod.name, page).execute()
+            }.fold(
+                { response ->
+                    if (response.isSuccessful && response.body() != null) {
+                        val list = response.body()?.map { it.toVideoItemModel() }
+                        ApiResponse.Success(list ?: emptyList())
+                    } else
+                        ApiResponse.Error(response.errorBody()?.string() ?: "getFilteredListVideo api error")
+                },
+                { error -> ApiResponse.Error("getFilteredListVideo error: ${error.message}") }
+            )
+        } else {
+            runCatching {
+                localParser.getFilteredListVideo(category, genre, moviePeriod, page).map { it.toVideoItemModel() }
+            }.fold(
+                { result -> ApiResponse.Success(result) },
+                { error -> ApiResponse.Error("getFilteredListVideo error: ${error.message}") }
+            )
+        }
     }
 
     override suspend fun getCollectionsListVideo(

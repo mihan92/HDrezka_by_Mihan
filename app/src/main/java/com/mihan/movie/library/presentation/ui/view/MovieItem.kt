@@ -1,7 +1,9 @@
 package com.mihan.movie.library.presentation.ui.view
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -31,7 +33,7 @@ import androidx.tv.material3.MaterialTheme
 import coil.compose.SubcomposeAsyncImage
 import com.mihan.movie.library.common.models.VideoCategory
 import com.mihan.movie.library.presentation.ui.size10dp
-import com.mihan.movie.library.presentation.ui.size16sp
+import com.mihan.movie.library.presentation.ui.size18sp
 import com.mihan.movie.library.presentation.ui.size2dp
 import com.mihan.movie.library.presentation.ui.size4dp
 import com.mihan.movie.library.presentation.ui.size6dp
@@ -48,11 +50,13 @@ fun MovieItem(
 ) {
     var borderColor by remember { mutableStateOf(Color.Transparent) }
     val primaryColor = MaterialTheme.colorScheme.primary
+    var isFocused by remember { mutableStateOf(false) }
     Card(
         modifier = modifier
             .aspectRatio(2 / 3f)
             .padding(size10dp)
             .onFocusChanged {
+                isFocused = it.isFocused
                 borderColor = if (it.isFocused) primaryColor else Color.Transparent
             },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
@@ -76,7 +80,10 @@ fun MovieItem(
                         .clip(RoundedCornerShape(size8dp))
                         .weight(1f),
                 )
-                VideoTitle(title = title)
+                VideoTitle(
+                    isFocused = isFocused,
+                    title = title
+                )
             }
             if (category.isNotEmpty())
                 Category(
@@ -87,10 +94,11 @@ fun MovieItem(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
+@OptIn(ExperimentalTvMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun VideoTitle(
     title: String,
+    isFocused: Boolean,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -99,12 +107,19 @@ private fun VideoTitle(
     ) {
         Text(
             text = title,
-            fontSize = size16sp,
+            fontSize = size18sp,
             fontWeight = FontWeight.W700,
             color = MaterialTheme.colorScheme.onBackground,
-            maxLines = 2,
+            maxLines = 1,
             textAlign = TextAlign.Center,
-            modifier = modifier.padding(size2dp)
+            modifier = if (isFocused) {
+                modifier
+                    .basicMarquee()
+                    .padding(size4dp)
+            } else {
+                modifier
+                    .padding(size4dp)
+            }
         )
     }
 }

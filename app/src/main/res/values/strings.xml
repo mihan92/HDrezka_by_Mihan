@@ -45,7 +45,7 @@
     <string name="genre_title">Жанр: %\s</string>
     <string name="primary_color_title">Основной цвет</string>
     <string name="primary_color_description">Выберите основной цвет приложения на своё усмотрение</string>
-    <string name="remote_parsing_title">Удаленный парсинг (экспериментальная функция)</string>
+    <string name="remote_parsing_title">Удаленный парсинг</string>
     <string name="remote_parsing_description">Если включена эта опция, то данные фильмов парсятся и берутся из внешнего сервера</string>
     <string name="actors_title">В ролях: %\s</string>
     <string name="history_route_title">История</string>

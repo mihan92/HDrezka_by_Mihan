@@ -116,17 +116,18 @@ private fun Content(
     currentPage: Int,
     previousPageClick: () -> Unit,
     nextPageClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val focusRequester = remember { FocusRequester() }
     Box(
         contentAlignment = Alignment.BottomCenter,
-        modifier = Modifier.padding(bottom = size10dp)
+        modifier = modifier.padding(bottom = size10dp)
     ) {
         val state = rememberTvLazyGridState()
         TvLazyVerticalGrid(
             state = state,
             columns = TvGridCells.Fixed(numberOfGridCells),
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxSize()
                 .focusRequester(focusRequester)
         ) {
