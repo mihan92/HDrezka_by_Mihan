@@ -26,18 +26,23 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.ModalNavigationDrawer
 import androidx.tv.material3.Surface
 import androidx.tv.material3.rememberDrawerState
+import com.mihan.movie.library.BuildConfig
 import com.mihan.movie.library.R
 import com.mihan.movie.library.common.DataStorePrefs
-import com.mihan.movie.library.common.models.Colors
+import com.mihan.movie.library.common.analytics.AnalyticsEvent
+import com.mihan.movie.library.common.analytics.sendEvent
 import com.mihan.movie.library.common.extentions.logger
-import com.mihan.movie.library.common.utils.EventManager
+import com.mihan.movie.library.common.models.Colors
 import com.mihan.movie.library.common.utils.AppUpdatesChecker
+import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.presentation.navigation.Screens
 import com.mihan.movie.library.presentation.screens.NavGraphs
 import com.mihan.movie.library.presentation.ui.theme.MovieLibraryTheme
 import com.mihan.movie.library.presentation.ui.view.DrawerContent
 import com.ramcosta.composedestinations.DestinationsNavHost
 import dagger.hilt.android.AndroidEntryPoint
+import io.appmetrica.analytics.AppMetrica
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -64,6 +69,7 @@ class MainActivity : ComponentActivity() {
         appUpdatesChecker.checkUpdates()
         onBackPressedCallback()
         checkEvents()
+        registerNewUser()
         setContent {
             val primaryColorState = dataStorePrefs.getPrimaryColor().collectAsStateWithLifecycle(Colors.Color0)
             val primaryColor by remember { primaryColorState }
@@ -124,6 +130,24 @@ class MainActivity : ComponentActivity() {
                 currentTimeInMillis = System.currentTimeMillis()
             }
         }
+    }
+
+    private fun registerNewUser() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                val isUserHasRegisteredStatus = dataStorePrefs.getRegisterStatus().first()
+                if (isUserHasRegisteredStatus) return@repeatOnLifecycle
+                val deviceId = getAppMetricaDeviceId() ?: return@repeatOnLifecycle
+                sendEvent(AnalyticsEvent.REGISTER, deviceId)
+                dataStorePrefs.updateRegisterStatus(true)
+            }
+        }
+    }
+
+    private fun getAppMetricaDeviceId(): String? {
+        var deviceId = AppMetrica.getDeviceId(this) ?: return null
+        if (BuildConfig.DEBUG) deviceId = deviceId.plus(" -- test device")
+        return deviceId
     }
 
     companion object {

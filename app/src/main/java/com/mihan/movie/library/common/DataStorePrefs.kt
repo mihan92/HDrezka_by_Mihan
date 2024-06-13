@@ -93,6 +93,17 @@ class DataStorePrefs @Inject constructor(@ApplicationContext context: Context) {
         }
     }
 
+    fun getRegisterStatus(): Flow<Boolean> =
+        dataStore.data.map { prefs ->
+            prefs[REGISTER_STATUS_KEY] ?: false
+        }
+
+    suspend fun updateRegisterStatus(isRegistered: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[REGISTER_STATUS_KEY] = isRegistered
+        }
+    }
+
     companion object {
         private const val DATA_STORE_NAME = "data_store_preferences"
         private val APP_UPDATES_KEY = booleanPreferencesKey("app_updates_key")
@@ -102,6 +113,7 @@ class DataStorePrefs @Inject constructor(@ApplicationContext context: Context) {
         private val PRIMARY_COLOR_KEY = stringPreferencesKey("primary_color")
         private val REMOTE_PARSING_KEY = booleanPreferencesKey("remote_parsing_key")
         private val AUTO_UPDATE_KEY = booleanPreferencesKey("auto_update")
+        private val REGISTER_STATUS_KEY = booleanPreferencesKey("register_status")
         private val DEFAULT_VIDEO_CATEGORY = VideoCategory.All
         private val DEFAULT_VIDEO_QUALITY = VideoQuality.Quality1080
         private val DEFAULT_PRIMARY_COLOR = Colors.Color0

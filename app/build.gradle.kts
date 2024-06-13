@@ -17,13 +17,14 @@ android {
         applicationId = "com.mihan.movie.library"
         minSdk = 28
         targetSdk = 34
-        versionCode = 15
-        versionName = "0.8.1"
+        versionCode = 16
+        versionName = "0.9.0"
         vectorDrawables {
             useSupportLibrary = true
         }
         setProperty("archivesBaseName", rootProject.name.lowercase(Locale.getDefault()))
         buildConfigField("String", "ACCESS_TOKEN", gradleLocalProperties(rootDir).getProperty("accessToken"))
+        buildConfigField("String", "APP_METRICA_KEY", gradleLocalProperties(rootDir).getProperty("appMetricaKey"))
     }
 
     buildTypes {
@@ -71,7 +72,6 @@ dependencies {
     val permissionsVersion = "0.25.1"
     val composeBomVersion = "2024.04.00"
     val roomVersion = "2.6.1"
-    val exoPlayerVersion = "1.3.1"
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
@@ -84,6 +84,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     implementation("androidx.activity:activity-compose:1.8.2")
+
+    //Analytics
+    implementation("io.appmetrica.analytics:analytics:6.5.0")
 
     //DI
     implementation("com.google.dagger:hilt-android:$hiltVersion")
