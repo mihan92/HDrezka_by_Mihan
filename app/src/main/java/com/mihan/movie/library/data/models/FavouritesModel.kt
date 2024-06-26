@@ -19,3 +19,10 @@ fun FavouritesDbModel.toFavouritesModel() = FavouritesModel(
     videoTitle = videoTitle,
     posterUrl = posterUrl
 )
+
+fun FavouritesModel.toFavouritesDbModel() = FavouritesDbModel(
+    videoId = videoId,
+    videoPageUrl = videoPageUrl,
+    videoTitle = videoTitle,
+    posterUrl = posterUrl
+)

@@ -1,6 +1,5 @@
 package com.mihan.movie.library.presentation.screens.detail
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -73,7 +71,6 @@ fun DetailVideoScreen(
     val listOfSeasons by detailViewModel.listOfSeasons.collectAsStateWithLifecycle()
     val videoHistoryModel by detailViewModel.videoHistoryModel.collectAsStateWithLifecycle()
     val isVideoHasFavourites by detailViewModel.isVideoHasFavourites.collectAsStateWithLifecycle()
-    val context = LocalContext.current
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -82,12 +79,7 @@ fun DetailVideoScreen(
             Content(
                 videoDetailModel = detailModel,
                 isVideoHasFavourites = isVideoHasFavourites,
-                onButtonWatchClick = {
-                    if (detailModel.errorMessage.isEmpty())
-                        detailViewModel.onButtonWatchClicked()
-                    else
-                        Toast.makeText(context, detailModel.errorMessage, Toast.LENGTH_LONG).show()
-                },
+                onButtonWatchClick = detailViewModel::onButtonWatchClicked,
                 onButtonFavouritesClick = detailViewModel::onButtonFavouritesClicked
             )
         }

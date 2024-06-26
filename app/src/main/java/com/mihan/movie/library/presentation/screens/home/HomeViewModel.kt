@@ -12,9 +12,9 @@ import com.mihan.movie.library.common.models.MoviePeriod
 import com.mihan.movie.library.common.models.VideoCategory
 import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.common.utils.whileUiSubscribed
-import com.mihan.movie.library.domain.usecases.GetCollectionsListVideoUseCase
-import com.mihan.movie.library.domain.usecases.GetListFilteredVideoUseCase
-import com.mihan.movie.library.domain.usecases.GetListVideoUseCase
+import com.mihan.movie.library.domain.usecases.parser.GetCollectionsListVideoUseCase
+import com.mihan.movie.library.domain.usecases.parser.GetListFilteredVideoUseCase
+import com.mihan.movie.library.domain.usecases.parser.GetListVideoUseCase
 import com.mihan.movie.library.presentation.ui.view.TopBarItems
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow

@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.mihan.movie.library.common.models.Colors
 import com.mihan.movie.library.common.models.VideoCategory
@@ -71,17 +72,6 @@ class DataStorePrefs @Inject constructor(@ApplicationContext context: Context) {
         }
     }
 
-    fun getRemoteParsing(): Flow<Boolean> =
-        dataStore.data.map { prefs ->
-            prefs[REMOTE_PARSING_KEY] ?: true
-        }
-
-    suspend fun setRemoteParsing(isSelected: Boolean) {
-        dataStore.edit { prefs ->
-            prefs[REMOTE_PARSING_KEY] = isSelected
-        }
-    }
-
     fun getAutoUpdate(): Flow<Boolean> =
         dataStore.data.map { prefs ->
             prefs[AUTO_UPDATE_KEY] ?: true
@@ -93,14 +83,61 @@ class DataStorePrefs @Inject constructor(@ApplicationContext context: Context) {
         }
     }
 
-    fun getRegisterStatus(): Flow<Boolean> =
+    fun getNewUserRegisterStatus(): Flow<Boolean> =
         dataStore.data.map { prefs ->
-            prefs[REGISTER_STATUS_KEY] ?: false
+            prefs[REGISTER_NEW_USER_STATUS_KEY] ?: false
         }
 
-    suspend fun updateRegisterStatus(isRegistered: Boolean) {
+    suspend fun updateNewUserRegisterStatus(isRegistered: Boolean) {
         dataStore.edit { prefs ->
-            prefs[REGISTER_STATUS_KEY] = isRegistered
+            prefs[REGISTER_NEW_USER_STATUS_KEY] = isRegistered
+        }
+    }
+
+    suspend fun saveCookies(cookies: Set<String>) {
+        dataStore.edit { prefs ->
+            prefs[COOKIES_KEY] = cookies
+        }
+    }
+
+    fun getCookies(): Flow<Set<String>> =
+        dataStore.data.map { prefs ->
+            prefs[COOKIES_KEY] ?: emptySet()
+        }
+
+    suspend fun clearCookies() {
+        dataStore.edit { prefs ->
+            prefs[COOKIES_KEY] = emptySet()
+            prefs[USER_ID_KEY] = Constants.EMPTY_STRING
+            prefs[USER_AUTH_STATUS_KEY] = prefs[USER_ID_KEY]?.isNotEmpty() ?: false
+        }
+    }
+
+    suspend fun saveUserId(userId: String) {
+        dataStore.edit { prefs ->
+            prefs[USER_ID_KEY] = userId
+            prefs[USER_AUTH_STATUS_KEY] = prefs[USER_ID_KEY]?.isNotEmpty() ?: false
+        }
+    }
+
+    fun getUserId(): Flow<String> =
+        dataStore.data.map { prefs ->
+            prefs[USER_ID_KEY] ?: Constants.EMPTY_STRING
+        }
+
+    fun getUserAuthorizationStatus(): Flow<Boolean> =
+        dataStore.data.map { prefs ->
+            prefs[USER_AUTH_STATUS_KEY] ?: false
+        }
+
+    fun getNewSeriesStatus(): Flow<Boolean> =
+        dataStore.data.map { prefs ->
+            prefs[NEW_SERIES_STATUS_KEY] ?: false
+        }
+
+    suspend fun updateNewSeriesStatus(hasNewSeries: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[NEW_SERIES_STATUS_KEY] = hasNewSeries
         }
     }
 
@@ -111,9 +148,12 @@ class DataStorePrefs @Inject constructor(@ApplicationContext context: Context) {
         private val VIDEO_QUALITY_KEY = stringPreferencesKey("video_quality")
         private val BASE_URL_KEY = stringPreferencesKey("base_url")
         private val PRIMARY_COLOR_KEY = stringPreferencesKey("primary_color")
-        private val REMOTE_PARSING_KEY = booleanPreferencesKey("remote_parsing_key")
         private val AUTO_UPDATE_KEY = booleanPreferencesKey("auto_update")
-        private val REGISTER_STATUS_KEY = booleanPreferencesKey("register_status")
+        private val REGISTER_NEW_USER_STATUS_KEY = booleanPreferencesKey("new_user_key")
+        private val USER_AUTH_STATUS_KEY = booleanPreferencesKey("user_auth_status")
+        private val NEW_SERIES_STATUS_KEY = booleanPreferencesKey("new_series_status")
+        private val COOKIES_KEY = stringSetPreferencesKey("cookies_key")
+        private val USER_ID_KEY = stringPreferencesKey("user_id_key")
         private val DEFAULT_VIDEO_CATEGORY = VideoCategory.All
         private val DEFAULT_VIDEO_QUALITY = VideoQuality.Quality1080
         private val DEFAULT_PRIMARY_COLOR = Colors.Color0

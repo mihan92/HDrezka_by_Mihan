@@ -3,6 +3,7 @@ package com.mihan.movie.library.data.models
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.mihan.movie.library.common.Constants
 import com.mihan.movie.library.domain.models.VideoHistoryModel
 
 @Entity(tableName = "video_history")
@@ -19,6 +20,19 @@ data class VideoHistoryDbModel(
 )
 
 fun VideoHistoryDbModel.toVideoHistoryModel() = VideoHistoryModel(
+    videoId = videoId,
+    dataId = Constants.EMPTY_STRING,
+    videoPageUrl = videoPageUrl,
+    videoTitle = videoTitle,
+    posterUrl = posterUrl,
+    translatorName = translatorName,
+    translatorId = translatorId,
+    season = season,
+    episode = episode,
+    watchingTime = watchingTime
+)
+
+fun VideoHistoryModel.toVideoHistoryDbModel() = VideoHistoryDbModel(
     videoId = videoId,
     videoPageUrl = videoPageUrl,
     videoTitle = videoTitle,

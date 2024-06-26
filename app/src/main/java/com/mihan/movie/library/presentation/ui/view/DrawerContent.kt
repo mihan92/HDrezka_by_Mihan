@@ -38,11 +38,12 @@ import com.mihan.movie.library.presentation.navigation.popUpToMain
 import com.mihan.movie.library.presentation.ui.size18sp
 import com.mihan.movie.library.presentation.ui.size4dp
 
-private const val DRAWER_WIDTH_FRACTION = 0.12f
+private const val DRAWER_WIDTH_FRACTION = 0.13f
 private const val CONTENT_ALPHA = 0.7f
 
 enum class DrawerItems(val route: String, @DrawableRes val icon: Int, @StringRes val titleResId: Int) {
-    Updates(Screens.AppUpdatesScreen.route, R.drawable.ic_notifications, R.string.updates_route_title),
+    AppUpdates(Screens.AppUpdatesScreen.route, R.drawable.ic_notifications, R.string.updates_route_title),
+    NewSeries(Screens.NewSeriesScreen.route, R.drawable.ic_new, R.string.new_series),
     Search(Screens.Search.route, R.drawable.ic_search, R.string.search_route_title),
     Home(Screens.Home.route, R.drawable.ic_home, R.string.home_route_title),
     History(Screens.HistoryScreen.route, R.drawable.ic_history, R.string.history_route_title),
@@ -57,6 +58,7 @@ fun DrawerContent(
     currentDestination: String?,
     navController: NavHostController,
     isAppUpdatesAvailable: Boolean,
+    isNewSeriesAvailable: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -71,7 +73,11 @@ fun DrawerContent(
                 icon = ImageVector.vectorResource(item.icon),
                 titleResId = item.titleResId,
                 selected = item.route == currentDestination,
-                isVisible = if (item.route == Screens.AppUpdatesScreen.route) isAppUpdatesAvailable else true,
+                isVisible = when (item.route) {
+                    Screens.AppUpdatesScreen.route -> isAppUpdatesAvailable
+                    Screens.NewSeriesScreen.route -> isNewSeriesAvailable
+                    else -> true
+                },
                 onItemClick = {
                     navController.navigate(item.route) {
                         popUpToMain()

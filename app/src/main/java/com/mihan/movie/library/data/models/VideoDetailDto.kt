@@ -15,7 +15,6 @@ data class VideoDetailDto(
     val genre: String = EMPTY_STRING,
     val actors: String = EMPTY_STRING,
     val imageUrl: String = EMPTY_STRING,
-    val errorMessage: String = EMPTY_STRING
 )
 
 fun VideoDetailDto.toVideoDetail() = VideoDetailModel(
@@ -30,5 +29,4 @@ fun VideoDetailDto.toVideoDetail() = VideoDetailModel(
     genre = genre,
     actors = actors,
     imageUrl = imageUrl,
-    errorMessage = errorMessage
 )

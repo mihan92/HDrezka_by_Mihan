@@ -45,8 +45,6 @@
     <string name="genre_title">Жанр: %\s</string>
     <string name="primary_color_title">Основной цвет</string>
     <string name="primary_color_description">Выберите основной цвет приложения на своё усмотрение</string>
-    <string name="remote_parsing_title">Удаленный парсинг</string>
-    <string name="remote_parsing_description">Если включена эта опция, то данные фильмов парсятся и берутся из внешнего сервера</string>
     <string name="actors_title">В ролях: %\s</string>
     <string name="history_route_title">История</string>
     <string name="history_screen_placeholder">История просмотров пустая</string>
@@ -60,4 +58,15 @@
     <string name="bt_find_title">Найти</string>
     <string name="filter_dialog_title">Выберите нужную категорию:</string>
     <string name="dialog_title_collections">Коллекции:</string>
+    <string name="authorization_title">Авторизация</string>
+    <string name="authorization_desc">Авторизуйтесь для синхронизации истории просмотров получения уведомлений о выходе новых серий</string>
+    <string name="login_title">Войти</string>
+    <string name="logout_title">Выйти</string>
+    <string name="login_greeting">Вы авторизованы как %1$s</string>
+    <string name="empty_fields_error_message">Поля логина и пароля не должны быть пустыми</string>
+    <string name="email_title">email</string>
+    <string name="password_title">password</string>
+    <string name="new_series">Новые серии</string>
+    <string name="new_series_screen_placeholder">Новых серий пока нет</string>
+    <string name="updated_url_message">Ссылка на сайт обновлена %1$s При необходимости авторизуйтесь заново</string>
 </resources>

@@ -7,7 +7,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.mihan.movie.library.common.ApiResponse
-import com.mihan.movie.library.common.Constants.EMPTY_STRING
+import com.mihan.movie.library.common.Constants
+import com.mihan.movie.library.common.DataStorePrefs
 import com.mihan.movie.library.common.extentions.logger
 import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.domain.models.FavouritesModel
@@ -15,22 +16,26 @@ import com.mihan.movie.library.domain.models.SerialModel
 import com.mihan.movie.library.domain.models.StreamModel
 import com.mihan.movie.library.domain.models.VideoHistoryModel
 import com.mihan.movie.library.domain.models.VideoInfoModel
-import com.mihan.movie.library.domain.usecases.AddToFavouritesUseCase
-import com.mihan.movie.library.domain.usecases.DeleteFromFavouritesUseCase
-import com.mihan.movie.library.domain.usecases.GetDetailVideoByUrlUseCase
-import com.mihan.movie.library.domain.usecases.GetFavoriteByIdUseCase
-import com.mihan.movie.library.domain.usecases.GetSeasonsByTranslatorIdUseCase
-import com.mihan.movie.library.domain.usecases.GetStreamsBySeasonIdUseCase
-import com.mihan.movie.library.domain.usecases.GetStreamsByTranslatorIdUseCase
-import com.mihan.movie.library.domain.usecases.GetTranslationsByUrlUseCase
-import com.mihan.movie.library.domain.usecases.GetVideoHistoryByIdUseCase
-import com.mihan.movie.library.domain.usecases.UpdateVideoHistoryUseCase
+import com.mihan.movie.library.domain.models.WatchedVideoModel
+import com.mihan.movie.library.domain.usecases.auth.MarkAsViewedUseCase
+import com.mihan.movie.library.domain.usecases.auth.SendWatchedVideoUseCase
+import com.mihan.movie.library.domain.usecases.favourites.AddToFavouritesUseCase
+import com.mihan.movie.library.domain.usecases.favourites.DeleteFromFavouritesUseCase
+import com.mihan.movie.library.domain.usecases.favourites.GetFavoriteByIdUseCase
+import com.mihan.movie.library.domain.usecases.local_history.GetVideoHistoryByIdUseCase
+import com.mihan.movie.library.domain.usecases.local_history.UpdateVideoHistoryUseCase
+import com.mihan.movie.library.domain.usecases.parser.GetDetailVideoByUrlUseCase
+import com.mihan.movie.library.domain.usecases.parser.GetSeasonsByTranslatorIdUseCase
+import com.mihan.movie.library.domain.usecases.parser.GetStreamsBySeasonIdUseCase
+import com.mihan.movie.library.domain.usecases.parser.GetStreamsByTranslatorIdUseCase
+import com.mihan.movie.library.domain.usecases.parser.GetTranslationsByUrlUseCase
 import com.mihan.movie.library.presentation.screens.navArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -49,10 +54,14 @@ class DetailViewModel @Inject constructor(
     private val getFavoriteByIdUseCase: GetFavoriteByIdUseCase,
     private val addToFavouritesUseCase: AddToFavouritesUseCase,
     private val deleteFromFavouritesUseCase: DeleteFromFavouritesUseCase,
+    private val sendWatchedVideoUseCase: SendWatchedVideoUseCase,
+    private val markAsViewedUseCase: MarkAsViewedUseCase,
     private val eventManager: EventManager,
+    private val dataStorePrefs: DataStorePrefs,
     savedStateHandle: SavedStateHandle,
     application: Application
 ) : AndroidViewModel(application) {
+
     private val navArgs: DetailScreenNavArgs = savedStateHandle.navArgs()
     private val _screenState = MutableStateFlow(DetailScreenState())
     private val _showFilmDialog = MutableStateFlow(false)
@@ -62,10 +71,10 @@ class DetailViewModel @Inject constructor(
     private var _translatorId = _videoInfo.value.translations.values.firstOrNull()
     private var _translatorName = _videoInfo.value.translations.keys.firstOrNull()
     private val _listOfSeasons = MutableStateFlow<List<SerialModel>>(emptyList())
-    private var _seasonAndEpisodeTitle = Pair(EMPTY_STRING, EMPTY_STRING)
+    private var _seasonAndEpisodeTitle = Pair(Constants.EMPTY_STRING, Constants.EMPTY_STRING)
     private val _videoHistoryModel = MutableStateFlow<VideoHistoryModel?>(null)
     private val _isVideoHasFavourites = MutableStateFlow(false)
-    private var _filmId = EMPTY_STRING
+    private var _filmId = Constants.EMPTY_STRING
 
     val videoInfo = _videoInfo.asStateFlow()
     val showFilmDialog = _showFilmDialog.asStateFlow()
@@ -83,43 +92,24 @@ class DetailViewModel @Inject constructor(
     fun onButtonWatchClicked() {
         viewModelScope.launch {
             getTranslationsByUrlUseCase(navArgs.movieUrl)
-                .onEach { result ->
-                    when (result) {
-                        is ApiResponse.Error -> {
-                            _screenState.update { DetailScreenState(detailInfo = _screenState.value.detailInfo) }
-                            eventManager.sendEvent(result.errorMessage)
-                        }
-
-                        is ApiResponse.Loading -> _screenState.update {
-                            DetailScreenState(
-                                detailInfo = _screenState.value.detailInfo,
-                                isLoading = true
-                            )
-                        }
-
-                        is ApiResponse.Success -> {
-                            _screenState.update { DetailScreenState(detailInfo = _screenState.value.detailInfo) }
-                            _videoInfo.update { result.data }
-                            _translatorId = result.data.translations.values.first()
-                            _translatorName = result.data.translations.keys.first()
-                            if (result.data.isVideoHasSeries) {
-                                if (_videoHistoryModel.value != null) { // Если история просмотров не пустая
-                                    _translatorId = _videoHistoryModel.value?.translatorId!!
-                                    _translatorName = _videoHistoryModel.value?.translatorName
-                                    getSeasonsByTranslatorId(_videoHistoryModel.value?.translatorId!!)
-                                } else {
-                                    getSeasonsByTranslatorId(result.data.translations.values.first())
-                                }
-                            } else
-                                updateData()
+                .collect { result ->
+                    handleApiResponse(result) { data ->
+                        _videoInfo.value = data
+                        _translatorId = data.translations.values.firstOrNull()
+                        _translatorName = data.translations.keys.firstOrNull()
+                        if (data.isVideoHasSeries) {
+                            handleSeriesTranslations(data)
+                        } else {
+                            updateData()
                         }
                     }
-                }.last()
+                }
         }
     }
 
     fun selectTranslateForFilms(translatorId: String) {
         viewModelScope.launch {
+            _translatorId = translatorId
             getStreamsByTranslatorId(translatorId)
         }
     }
@@ -132,17 +122,17 @@ class DetailViewModel @Inject constructor(
 
     fun onButtonFavouritesClicked() {
         viewModelScope.launch {
-            val videoPageUrl = Uri.parse(navArgs.movieUrl).path ?: EMPTY_STRING
+            val videoPageUrl = Uri.parse(navArgs.movieUrl).path ?: Constants.EMPTY_STRING
             val videoInfo = _screenState.value.detailInfo
-            if (_isVideoHasFavourites.value)
-                deleteFromFavouritesUseCase(videoInfo?.filmId ?: EMPTY_STRING)
-            else {
+            if (_isVideoHasFavourites.value) {
+                deleteFromFavouritesUseCase(videoInfo?.filmId ?: Constants.EMPTY_STRING)
+            } else {
                 addToFavouritesUseCase(
                     FavouritesModel(
-                        videoId = videoInfo?.filmId ?: EMPTY_STRING,
+                        videoId = videoInfo?.filmId ?: Constants.EMPTY_STRING,
                         videoPageUrl = videoPageUrl,
-                        videoTitle = videoInfo?.title ?: EMPTY_STRING,
-                        posterUrl = videoInfo?.imageUrl ?: EMPTY_STRING
+                        videoTitle = videoInfo?.title ?: Constants.EMPTY_STRING,
+                        posterUrl = videoInfo?.imageUrl ?: Constants.EMPTY_STRING
                     )
                 )
             }
@@ -164,128 +154,84 @@ class DetailViewModel @Inject constructor(
     private fun getVideoDetailInfo() {
         viewModelScope.launch {
             getDetailVideoByUrlUseCase(navArgs.movieUrl)
-                .onEach { result ->
-                    when (result) {
-                        is ApiResponse.Error -> {
-                            _screenState.update { DetailScreenState(isLoading = false) }
-                            eventManager.sendEvent(result.errorMessage)
-                        }
-
-                        is ApiResponse.Loading -> _screenState.update { DetailScreenState(isLoading = true) }
-                        is ApiResponse.Success -> {
-                            _screenState.update { DetailScreenState(detailInfo = result.data) }
-                            _filmId = result.data.filmId
-                            getFavourites(result.data.filmId)
-                            getVideoHistoryData(result.data.filmId)
-                        }
+                .collect { result ->
+                    handleApiResponse(result) { data ->
+                        _screenState.update { it.copy(detailInfo = data) }
+                        _filmId = data.filmId
+                        getFavourites(data.filmId)
+                        getVideoHistoryData(data.filmId)
                     }
-                }.last()
+                }
         }
     }
 
     private fun getFavourites(videoId: String) {
         getFavoriteByIdUseCase(videoId)
             .onEach { favouritesModel ->
-                _isVideoHasFavourites.update { favouritesModel != null }
+                _isVideoHasFavourites.value = (favouritesModel != null)
             }.launchIn(viewModelScope)
     }
 
-    private fun getVideoHistoryData(videoId: String) {
-        getVideoHistoryByIdUseCase(videoId)
-            .onEach { historyModel ->
-                _videoHistoryModel.update { historyModel }
-            }.launchIn(viewModelScope)
+    private suspend fun getVideoHistoryData(videoId: String) {
+        getVideoHistoryByIdUseCase(videoId).collectLatest { result ->
+            handleApiResponse(result) { historyModel ->
+                _videoHistoryModel.value = historyModel
+            }
+        }
     }
 
     private fun updateData() {
-        if (_listOfSeasons.value.isEmpty() && !_videoInfo.value.isVideoHasTranslations) {
-            //Фильм без переводов
-            logger("Фильм без переводов")
-            val defaultTranslate = _videoInfo.value.translations.entries.first().value
-            viewModelScope.launch {
-                getStreamsByTranslatorId(defaultTranslate)
+        when {
+            _listOfSeasons.value.isEmpty() && !_videoInfo.value.isVideoHasTranslations -> {
+                handleNoTranslations()
             }
-        } else if (_listOfSeasons.value.isEmpty()) {
-            //Фильм с переводами
-            showFilmDialog()
-            logger("Фильм с переводами")
-        } else if (_videoInfo.value.isVideoHasSeries && !_videoInfo.value.isVideoHasTranslations) {
-            //Сериал без переводов
-            showSerialDialog()
-            logger("Сериал без переводов")
-        } else if (_videoInfo.value.isVideoHasSeries) {
-            //Сериал с переводами
-            showSerialDialog()
-            logger("Сериал с переводами")
+
+            _listOfSeasons.value.isEmpty() -> {
+                showFilmDialog()
+                logger("Фильм с переводами")
+            }
+
+            _videoInfo.value.isVideoHasSeries && !_videoInfo.value.isVideoHasTranslations -> {
+                showSerialDialog()
+                logger("Сериал без переводов")
+            }
+
+            _videoInfo.value.isVideoHasSeries -> {
+                showSerialDialog()
+                logger("Сериал с переводами")
+            }
         }
     }
 
     private suspend fun getStreamsByTranslatorId(translatorId: String) {
         getStreamsByTranslatorIdUseCase(translatorId, _filmId)
-            .onEach { result ->
-                when (result) {
-                    is ApiResponse.Error -> {
-                        _screenState.value = DetailScreenState(detailInfo = _screenState.value.detailInfo)
-                        eventManager.sendEvent(result.errorMessage)
-                    }
-
-                    is ApiResponse.Loading -> _screenState.value = DetailScreenState(
-                        detailInfo = _screenState.value.detailInfo,
-                        isLoading = true
-                    )
-
-                    is ApiResponse.Success -> {
-                        _streamModel.emit(result.data)
-                        _screenState.value = DetailScreenState(
-                            detailInfo = _screenState.value.detailInfo,
-                            isLoading = false
-                        )
-                    }
+            .collect { result ->
+                handleApiResponse(result) { data ->
+                    _streamModel.emit(data)
                 }
-            }.last()
+            }
     }
 
     private fun getSeasonsByTranslatorId(translatorId: String) {
         viewModelScope.launch {
             getSeasonsByTranslatorIdUseCase(translatorId, _filmId)
-                .onEach { result ->
-                    when (result) {
-                        is ApiResponse.Error -> {
-                            _screenState.value = DetailScreenState(detailInfo = _screenState.value.detailInfo)
-                            eventManager.sendEvent(result.errorMessage)
-                        }
-
-                        is ApiResponse.Loading -> Unit
-                        is ApiResponse.Success -> {
-                            _listOfSeasons.update { result.data }
-                            updateData()
-                        }
+                .collect { result ->
+                    handleApiResponse(result) { data ->
+                        _listOfSeasons.value = data
+                        updateData()
                     }
-                }.last()
+                }
         }
     }
 
     private fun getStreamsBySeasonId(translationId: String, videoId: String, season: String, episode: String) {
         viewModelScope.launch {
             getStreamsBySeasonIdUseCase(translationId, videoId, season, episode)
-                .onEach { result ->
-                    when (result) {
-                        is ApiResponse.Error -> {
-                            _screenState.value = DetailScreenState(detailInfo = _screenState.value.detailInfo)
-                            eventManager.sendEvent(result.errorMessage)
-                        }
-
-                        is ApiResponse.Loading -> _screenState.value = DetailScreenState(
-                            detailInfo = _screenState.value.detailInfo,
-                            isLoading = true
-                        )
-
-                        is ApiResponse.Success -> {
-                            _screenState.value = DetailScreenState(detailInfo = _screenState.value.detailInfo)
-                            _streamModel.emit(result.data)
-                        }
+                .collect { result ->
+                    handleApiResponse(result) { data ->
+                        _streamModel.emit(data)
                     }
-                }.last()
+                }
         }
     }
 
@@ -295,7 +241,7 @@ class DetailViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    private fun sendIntent(stream: StreamModel) {
+    private suspend fun sendIntent(stream: StreamModel) {
         runCatching {
             val videoUrl = stream.url
             var title = screenState.value.detailInfo?.title
@@ -313,18 +259,34 @@ class DetailViewModel @Inject constructor(
             _screenState.value.detailInfo?.let { detailInfo ->
                 val watchingTime = System.currentTimeMillis()
                 val videoPageUrl = Uri.parse(navArgs.movieUrl).path
-                val model = VideoHistoryModel(
-                    videoId = detailInfo.filmId,
-                    videoPageUrl = videoPageUrl ?: EMPTY_STRING,
-                    videoTitle = detailInfo.title,
-                    posterUrl = detailInfo.imageUrl,
-                    translatorName = _translatorName ?: EMPTY_STRING,
-                    translatorId = _translatorId ?: EMPTY_STRING,
-                    season = _seasonAndEpisodeTitle.first,
-                    episode = _seasonAndEpisodeTitle.second,
-                    watchingTime = watchingTime
-                )
-                updateVideoHistory(model)
+
+                val isAuthorized = dataStorePrefs.getUserAuthorizationStatus().first()
+                if (isAuthorized) {
+                    val model = WatchedVideoModel(
+                        dataId = _filmId,
+                        translatorId = _translatorId ?: Constants.EMPTY_STRING,
+                        season = _seasonAndEpisodeTitle.first.ifEmpty { "0" },
+                        episode = _seasonAndEpisodeTitle.second.ifEmpty { "0" },
+                    )
+                    sendWatchedVideoUseCase(model)
+                    //markAsViewedUseCase(_videoHistoryModel.value?.dataId ?: Constants.EMPTY_STRING)
+                    getVideoHistoryData(_filmId)
+                } else {
+                    val model = VideoHistoryModel(
+                        videoId = _filmId,
+                        dataId = Constants.EMPTY_STRING,
+                        videoPageUrl = videoPageUrl ?: Constants.EMPTY_STRING,
+                        videoTitle = detailInfo.title,
+                        posterUrl = detailInfo.imageUrl,
+                        translatorName = _translatorName ?: Constants.EMPTY_STRING,
+                        translatorId = _translatorId ?: Constants.EMPTY_STRING,
+                        season = _seasonAndEpisodeTitle.first,
+                        episode = _seasonAndEpisodeTitle.second,
+                        watchingTime = watchingTime
+                    )
+                    updateVideoHistory(model)
+                    getVideoHistoryData(_filmId)
+                }
             }
         }.onFailure { error ->
             _screenState.value = DetailScreenState(detailInfo = _screenState.value.detailInfo)
@@ -346,5 +308,46 @@ class DetailViewModel @Inject constructor(
 
     private fun showFilmDialog() {
         _showFilmDialog.value = true
+    }
+
+    private fun getTranslatorIdByName(translatorName: String): String {
+        val translations = _videoInfo.value.translations
+        val matchingKey = translations.keys.firstOrNull { key -> key.contains(translatorName, ignoreCase = true) }
+        return translations[matchingKey] ?: translations.values.first()
+    }
+
+    private inline fun <T> handleApiResponse(result: ApiResponse<T>, onSuccess: (T) -> Unit) {
+        when (result) {
+            is ApiResponse.Error -> {
+                _screenState.update { it.copy(isLoading = false) }
+                eventManager.sendEvent(result.errorMessage)
+            }
+
+            is ApiResponse.Loading -> _screenState.update { it.copy(isLoading = true) }
+            is ApiResponse.Success -> {
+                _screenState.update { it.copy(isLoading = false) }
+                onSuccess(result.data)
+            }
+        }
+    }
+
+    private fun handleSeriesTranslations(data: VideoInfoModel) {
+        if (_videoHistoryModel.value != null) {
+            _translatorId = _videoHistoryModel.value!!.translatorId.takeIf { it.isNotEmpty() }
+                ?: getTranslatorIdByName(_videoHistoryModel.value!!.translatorName)
+            _translatorName = _videoHistoryModel.value!!.translatorName.takeIf { it.isNotEmpty() }
+                ?: data.translations.keys.firstOrNull()
+            getSeasonsByTranslatorId(_translatorId!!)
+        } else {
+            getSeasonsByTranslatorId(data.translations.values.first())
+        }
+    }
+
+    private fun handleNoTranslations() {
+        logger("Фильм без переводов")
+        val defaultTranslate = _videoInfo.value.translations.entries.first().value
+        viewModelScope.launch {
+            getStreamsByTranslatorId(defaultTranslate)
+        }
     }
 }

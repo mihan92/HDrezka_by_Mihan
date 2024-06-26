@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.common.utils.VoiceRecognizer
-import com.mihan.movie.library.domain.usecases.GetVideosByTitleUseCase
+import com.mihan.movie.library.domain.usecases.parser.GetVideosByTitleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

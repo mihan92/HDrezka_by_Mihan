@@ -73,7 +73,7 @@ fun MovieItem(
             ) {
                 SubcomposeAsyncImage(
                     model = imageUrl,
-                    loading = { CircularProgressIndicator() },
+                    loading = { CircularProgressIndicator(color = MaterialTheme.colorScheme.primary) },
                     contentDescription = title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
