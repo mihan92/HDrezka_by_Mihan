@@ -1,10 +1,10 @@
 package com.mihan.movie.library.data.repository
 
 import com.mihan.movie.library.data.local.db.FavouritesDao
+import com.mihan.movie.library.data.models.toFavouritesDbModel
 import com.mihan.movie.library.data.models.toFavouritesModel
 import com.mihan.movie.library.domain.FavouritesRepository
 import com.mihan.movie.library.domain.models.FavouritesModel
-import com.mihan.movie.library.domain.models.toFavouritesDbModel
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map

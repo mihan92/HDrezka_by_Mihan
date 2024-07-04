@@ -4,12 +4,15 @@ import android.app.DownloadManager
 import android.content.Context
 import androidx.room.Room
 import com.mihan.movie.library.common.Constants
+import com.mihan.movie.library.common.DataStorePrefs
+import com.mihan.movie.library.common.utils.CookieManager
 import com.mihan.movie.library.common.utils.DownloadManagerImpl
 import com.mihan.movie.library.common.utils.IDownloadManager
 import com.mihan.movie.library.data.local.db.FavouritesDao
 import com.mihan.movie.library.data.local.db.FavouritesDataBase
 import com.mihan.movie.library.data.local.db.VideoHistoryDao
 import com.mihan.movie.library.data.local.db.VideoHistoryDataBase
+import com.mihan.movie.library.data.remote.AuthApiService
 import com.mihan.movie.library.data.remote.GsonApiService
 import com.mihan.movie.library.data.remote.RemoteParserApiService
 import dagger.Binds
@@ -18,6 +21,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -41,6 +45,31 @@ interface AppModule {
 
         @Provides
         @Singleton
+        fun provideCookieManager(dataStorePrefs: DataStorePrefs, @IODispatcher scope: CoroutineScope) =
+            CookieManager(dataStorePrefs, scope)
+
+        @Provides
+        @Singleton
+        fun provideInterceptor(): HttpLoggingInterceptor = HttpLoggingInterceptor()
+            .setLevel(HttpLoggingInterceptor.Level.BASIC)
+
+        @Provides
+        @Singleton
+        fun provideOkHttpClient(interceptor: HttpLoggingInterceptor, cookieManager: CookieManager): OkHttpClient =
+            OkHttpClient
+                .Builder()
+                .cookieJar(cookieManager)
+                .addInterceptor(interceptor)
+                .build()
+
+        @Provides
+        @Singleton
+        fun provideRetrofit(client: OkHttpClient): Retrofit.Builder = Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(client)
+
+        @Provides
+        @Singleton
         fun provideRemoteParserApiService(retrofit: Retrofit.Builder): RemoteParserApiService = retrofit
             .baseUrl(Constants.REMOTE_PARSER_API_BASE_URL)
             .build()
@@ -55,20 +84,9 @@ interface AppModule {
 
         @Provides
         @Singleton
-        fun provideInterceptor(): HttpLoggingInterceptor = HttpLoggingInterceptor()
-            .setLevel(HttpLoggingInterceptor.Level.BASIC)
-
-        @Provides
-        @Singleton
-        fun provideOkHttpClient(interceptor: HttpLoggingInterceptor): OkHttpClient = OkHttpClient.Builder()
-            .addInterceptor(interceptor)
+        fun provideAuthApiService(retrofit: Retrofit.Builder): AuthApiService = retrofit
             .build()
-
-        @Provides
-        @Singleton
-        fun provideRetrofit(client: OkHttpClient): Retrofit.Builder = Retrofit.Builder()
-            .addConverterFactory(GsonConverterFactory.create())
-            .client(client)
+            .create(AuthApiService::class.java)
 
         @Provides
         @Singleton

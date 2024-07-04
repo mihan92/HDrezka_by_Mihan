@@ -10,6 +10,7 @@ enum class Screens(val route: String) {
     HistoryScreen("history_screen"),
     FavouritesScreen("favourites_screen"),
     PlayerScreen("player_screen"),
+    NewSeriesScreen("new_series_screen"),
 }
 
 

@@ -68,13 +68,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         appUpdatesChecker.checkUpdates()
         onBackPressedCallback()
-        checkEvents()
-        registerNewUser()
+        registerEventManager()
+        sendNewUserEvent()
+        sendAppOpenEvent()
         setContent {
             val primaryColorState = dataStorePrefs.getPrimaryColor().collectAsStateWithLifecycle(Colors.Color0)
             val primaryColor by remember { primaryColorState }
             MovieLibraryTheme(selectedColor = primaryColor) {
                 val appUpdateState = dataStorePrefs.getAppUpdates().collectAsStateWithLifecycle(initialValue = false)
+                val isUserAuthorized by dataStorePrefs.getUserAuthorizationStatus().collectAsStateWithLifecycle(false)
+                val hasNewSeries by dataStorePrefs.getNewSeriesStatus().collectAsStateWithLifecycle(initialValue = false)
                 val isAppUpdateAvailable by remember { appUpdateState }
                 val navController by remember { derivedStateOf { this.navController } }
                 val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -92,6 +95,7 @@ class MainActivity : ComponentActivity() {
                                     drawerState = drawerState,
                                     currentDestination = currentDestination,
                                     isAppUpdatesAvailable = isAppUpdateAvailable,
+                                    isNewSeriesAvailable = isUserAuthorized && hasNewSeries,
                                     navController = navController
                                 )
                         },
@@ -109,11 +113,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun checkEvents() {
+    private fun registerEventManager() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 eventManager.eventsFlow.onEach { eventMessage ->
-                    logger("message $eventMessage")
+                    logger("event message $eventMessage")
                     Toast.makeText(this@MainActivity, eventMessage, Toast.LENGTH_LONG).show()
                 }.launchIn(this)
             }
@@ -132,22 +136,27 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun registerNewUser() {
+    private fun sendNewUserEvent() {
+        if (BuildConfig.DEBUG) return
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
-                val isUserHasRegisteredStatus = dataStorePrefs.getRegisterStatus().first()
+                val isUserHasRegisteredStatus = dataStorePrefs.getNewUserRegisterStatus().first()
                 if (isUserHasRegisteredStatus) return@repeatOnLifecycle
-                val deviceId = getAppMetricaDeviceId() ?: return@repeatOnLifecycle
-                sendEvent(AnalyticsEvent.REGISTER, deviceId)
-                dataStorePrefs.updateRegisterStatus(true)
+                val deviceId = AppMetrica.getDeviceId(this@MainActivity) ?: return@repeatOnLifecycle
+                sendEvent(AnalyticsEvent.DEVICES, deviceId)
+                dataStorePrefs.updateNewUserRegisterStatus(true)
             }
         }
     }
 
-    private fun getAppMetricaDeviceId(): String? {
-        var deviceId = AppMetrica.getDeviceId(this) ?: return null
-        if (BuildConfig.DEBUG) deviceId = deviceId.plus(" -- test device")
-        return deviceId
+    private fun sendAppOpenEvent() {
+        if (BuildConfig.DEBUG) return
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                val deviceId = AppMetrica.getDeviceId(this@MainActivity) ?: return@repeatOnLifecycle
+                sendEvent(AnalyticsEvent.SESSIONS, deviceId)
+            }
+        }
     }
 
     companion object {
@@ -156,6 +165,7 @@ class MainActivity : ComponentActivity() {
             Screens.Search.route,
             Screens.Settings.route,
             Screens.HistoryScreen.route,
+            Screens.NewSeriesScreen.route,
             Screens.AppUpdatesScreen.route,
             Screens.FavouritesScreen.route,
         )

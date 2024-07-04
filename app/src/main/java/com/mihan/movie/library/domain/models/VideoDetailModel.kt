@@ -12,5 +12,4 @@ data class VideoDetailModel(
     val genre: String,
     val actors: String,
     val imageUrl: String,
-    val errorMessage: String
 )

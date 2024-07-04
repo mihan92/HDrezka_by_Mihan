@@ -17,8 +17,8 @@ android {
         applicationId = "com.mihan.movie.library"
         minSdk = 28
         targetSdk = 34
-        versionCode = 16
-        versionName = "0.9.0"
+        versionCode = 17
+        versionName = "1.0.0"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -68,22 +68,22 @@ dependencies {
     val navigationVersion = "1.9.55"
     val retrofitVersion = "2.9.0"
     val coilVersion = "2.5.0"
-    val dataStoreVersion = "1.0.0"
+    val dataStoreVersion = "1.1.1"
     val permissionsVersion = "0.25.1"
-    val composeBomVersion = "2024.04.00"
+    val composeBomVersion = "2024.06.00"
     val roomVersion = "2.6.1"
 
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.appcompat:appcompat:1.7.0")
     implementation(platform("androidx.compose:compose-bom:$composeBomVersion"))
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.tv:tv-foundation:1.0.0-alpha07") //пока не трогать, много чего экспериментального
     implementation("androidx.tv:tv-material:1.0.0-alpha07") //пока не трогать, много чего экспериментального
     implementation("androidx.media3:media3-extractor:1.3.1")
     implementation("androidx.compose.material3:material3:1.2.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
-    implementation("androidx.activity:activity-compose:1.8.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.2")
+    implementation("androidx.activity:activity-compose:1.9.0")
 
     //Analytics
     implementation("io.appmetrica.analytics:analytics:6.5.0")

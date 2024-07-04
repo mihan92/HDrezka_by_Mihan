@@ -7,9 +7,12 @@ import com.mihan.movie.library.common.models.MovieCollections
 import com.mihan.movie.library.common.models.MoviePeriod
 import com.mihan.movie.library.common.models.VideoCategory
 import com.mihan.movie.library.domain.models.BaseUrlModel
+import com.mihan.movie.library.domain.models.NewSeriesModel
 import com.mihan.movie.library.domain.models.SerialModel
 import com.mihan.movie.library.domain.models.StreamModel
+import com.mihan.movie.library.domain.models.UserInfo
 import com.mihan.movie.library.domain.models.VideoDetailModel
+import com.mihan.movie.library.domain.models.VideoHistoryModel
 import com.mihan.movie.library.domain.models.VideoInfoModel
 import com.mihan.movie.library.domain.models.VideoItemModel
 import com.mihan.movie.library.presentation.ui.view.TopBarItems
@@ -52,4 +55,10 @@ interface ParserRepository {
     suspend fun getSeasonsByTranslatorId(translatorId: String, filmId: String): ApiResponse<List<SerialModel>>
 
     suspend fun getStreamByTranslatorId(translatorId: String, filmId: String): ApiResponse<StreamModel>
+
+    suspend fun getUserInfo(): ApiResponse<UserInfo>
+
+    suspend fun getNewSeriesList(): ApiResponse<List<NewSeriesModel>>
+
+    suspend fun getRemoteHistoryList(): ApiResponse<List<VideoHistoryModel>>
 }

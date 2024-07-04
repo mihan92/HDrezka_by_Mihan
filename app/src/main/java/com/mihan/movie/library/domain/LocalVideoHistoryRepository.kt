@@ -1,15 +1,15 @@
 package com.mihan.movie.library.domain
 
+import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.domain.models.VideoHistoryModel
-import kotlinx.coroutines.flow.Flow
 
 interface LocalVideoHistoryRepository {
 
-    fun getVideoHistoryList(): Flow<List<VideoHistoryModel>>
+    suspend fun getVideoHistoryList(): ApiResponse<List<VideoHistoryModel>>
 
-    fun getVideoHistoryById(videoId: String): Flow<VideoHistoryModel?>
+    suspend fun getVideoHistoryById(videoId: String): ApiResponse<VideoHistoryModel?>
 
     suspend fun updateVideoHistory(videoHistoryModel: VideoHistoryModel)
 
-    suspend fun deleteVideoHistoryById(videoId: String)
+    suspend fun deleteVideoHistoryById(model: VideoHistoryModel)
 }

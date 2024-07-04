@@ -4,16 +4,16 @@ import android.content.Context
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.compose.DialogNavigator
-import com.mihan.movie.library.data.local.cache.CachingManager
 import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.common.utils.EventManagerImpl
 import com.mihan.movie.library.common.utils.VoiceRecognizer
-import com.mihan.movie.library.data.models.VideoItemDto
 import com.mihan.movie.library.data.repository.AppUpdateRepositoryImpl
+import com.mihan.movie.library.data.repository.AuthRepositoryImpl
 import com.mihan.movie.library.data.repository.FavouritesRepositoryImpl
 import com.mihan.movie.library.data.repository.LocalVideoVideoHistoryRepositoryImpl
 import com.mihan.movie.library.data.repository.ParserRepositoryImpl
 import com.mihan.movie.library.domain.AppUpdateRepository
+import com.mihan.movie.library.domain.AuthRepository
 import com.mihan.movie.library.domain.FavouritesRepository
 import com.mihan.movie.library.domain.LocalVideoHistoryRepository
 import com.mihan.movie.library.domain.ParserRepository
@@ -27,6 +27,9 @@ import dagger.hilt.android.scopes.ActivityRetainedScoped
 
 @[Module InstallIn(ActivityRetainedComponent::class)]
 interface ActivityRetainedModule {
+
+    @Binds
+    fun bindAuthRepository(impl: AuthRepositoryImpl): AuthRepository
 
     @Binds
     fun bindsParserRepository(impl: ParserRepositoryImpl): ParserRepository
@@ -44,9 +47,6 @@ interface ActivityRetainedModule {
     fun bindsEventManager(impl: EventManagerImpl): EventManager
 
     companion object {
-
-        @[Provides ActivityRetainedScoped]
-        fun provideListVideoCachingManager() = CachingManager<String, List<VideoItemDto>>()
 
         @[Provides ActivityRetainedScoped]
         fun provideVoiceRecognizer(@ApplicationContext context: Context) = VoiceRecognizer(context)

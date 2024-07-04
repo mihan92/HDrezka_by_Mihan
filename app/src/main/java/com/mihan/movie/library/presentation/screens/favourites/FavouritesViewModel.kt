@@ -6,8 +6,8 @@ import com.mihan.movie.library.common.Constants
 import com.mihan.movie.library.common.DataStorePrefs
 import com.mihan.movie.library.common.utils.whileUiSubscribed
 import com.mihan.movie.library.domain.models.FavouritesModel
-import com.mihan.movie.library.domain.usecases.DeleteFromFavouritesUseCase
-import com.mihan.movie.library.domain.usecases.GetFavoritesUseCase
+import com.mihan.movie.library.domain.usecases.favourites.DeleteFromFavouritesUseCase
+import com.mihan.movie.library.domain.usecases.favourites.GetFavoritesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
