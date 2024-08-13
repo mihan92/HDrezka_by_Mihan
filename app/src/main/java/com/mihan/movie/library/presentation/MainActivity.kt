@@ -18,8 +18,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import androidx.tv.material3.DrawerValue
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
@@ -42,7 +42,6 @@ import com.mihan.movie.library.presentation.ui.view.DrawerContent
 import com.ramcosta.composedestinations.DestinationsNavHost
 import dagger.hilt.android.AndroidEntryPoint
 import io.appmetrica.analytics.AppMetrica
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -50,9 +49,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject
-    internal lateinit var navController: NavHostController
 
     @Inject
     internal lateinit var dataStorePrefs: DataStorePrefs
@@ -69,7 +65,6 @@ class MainActivity : ComponentActivity() {
         appUpdatesChecker.checkUpdates()
         onBackPressedCallback()
         registerEventManager()
-        sendNewUserEvent()
         sendAppOpenEvent()
         setContent {
             val primaryColorState = dataStorePrefs.getPrimaryColor().collectAsStateWithLifecycle(Colors.Color0)
@@ -79,7 +74,7 @@ class MainActivity : ComponentActivity() {
                 val isUserAuthorized by dataStorePrefs.getUserAuthorizationStatus().collectAsStateWithLifecycle(false)
                 val hasNewSeries by dataStorePrefs.getNewSeriesStatus().collectAsStateWithLifecycle(initialValue = false)
                 val isAppUpdateAvailable by remember { appUpdateState }
-                val navController by remember { derivedStateOf { this.navController } }
+                val navController = rememberNavController()
                 val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination by remember { derivedStateOf { navBackStackEntry?.destination?.route } }
@@ -132,19 +127,6 @@ class MainActivity : ComponentActivity() {
             else {
                 Toast.makeText(this@MainActivity, getString(R.string.toast_confirm_exit), Toast.LENGTH_SHORT).show()
                 currentTimeInMillis = System.currentTimeMillis()
-            }
-        }
-    }
-
-    private fun sendNewUserEvent() {
-        if (BuildConfig.DEBUG) return
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                val isUserHasRegisteredStatus = dataStorePrefs.getNewUserRegisterStatus().first()
-                if (isUserHasRegisteredStatus) return@repeatOnLifecycle
-                val deviceId = AppMetrica.getDeviceId(this@MainActivity) ?: return@repeatOnLifecycle
-                sendEvent(AnalyticsEvent.DEVICES, deviceId)
-                dataStorePrefs.updateNewUserRegisterStatus(true)
             }
         }
     }

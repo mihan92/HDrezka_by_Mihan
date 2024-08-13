@@ -1,5 +1,8 @@
 package com.mihan.movie.library.presentation.screens.home
 
+import android.app.UiModeManager
+import android.content.Context
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -15,11 +18,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.foundation.lazy.grid.TvGridCells
@@ -28,11 +34,13 @@ import androidx.tv.foundation.lazy.grid.items
 import androidx.tv.foundation.lazy.grid.rememberTvLazyGridState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
+import com.mihan.movie.library.R
 import com.mihan.movie.library.domain.models.VideoItemModel
 import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
 import com.mihan.movie.library.presentation.screens.destinations.DetailVideoScreenDestination
 import com.mihan.movie.library.presentation.ui.size10dp
 import com.mihan.movie.library.presentation.ui.view.FilterDialog
+import com.mihan.movie.library.presentation.ui.view.InformationDialog
 import com.mihan.movie.library.presentation.ui.view.MovieItem
 import com.mihan.movie.library.presentation.ui.view.PageFooter
 import com.mihan.movie.library.presentation.ui.view.TopAppBar
@@ -57,7 +65,9 @@ fun HomeScreen(
     val categoryFilter by viewModel.categoryFilter.collectAsStateWithLifecycle()
     val genreFilter by viewModel.genreFilter.collectAsStateWithLifecycle()
     val moviePeriod by viewModel.moviePeriod.collectAsStateWithLifecycle()
-    var showFilterDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    var showFilterDialog by rememberSaveable { mutableStateOf(false) }
+    var showDialogUnsupportedDevice by rememberSaveable { mutableStateOf(false) }
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
             selectedTopBarItem = selectedTopBarItem,
@@ -101,12 +111,27 @@ fun HomeScreen(
                     showFilterDialog = false
                 }
             )
+            InformationDialog(
+                dialogTitle = stringResource(R.string.attention_title),
+                dialogDescription = stringResource(R.string.unsupported_device_description),
+                showDialogState = showDialogUnsupportedDevice,
+                onButtonAgreePressed = { showDialogUnsupportedDevice = false }
+            )
         }
     }
     LaunchedEffect(key1 = currentDefaultPage, key2 = selectedTopBarItem, key3 = videoCategory) {
         if (selectedTopBarItem == TopBarItems.Filter) return@LaunchedEffect
         viewModel.getListVideo()
     }
+    LaunchedEffect(Unit) {
+        if (!isRunningOnTv(context))
+            showDialogUnsupportedDevice = true
+    }
+}
+
+private fun isRunningOnTv(context: Context): Boolean {
+    val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+    return uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
 }
 
 @Composable

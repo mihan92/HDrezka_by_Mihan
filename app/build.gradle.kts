@@ -6,6 +6,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp") version "1.9.20-1.0.14"
+    kotlin("plugin.serialization") version "1.9.20"
     kotlin("kapt")
 }
 
@@ -17,8 +18,8 @@ android {
         applicationId = "com.mihan.movie.library"
         minSdk = 28
         targetSdk = 34
-        versionCode = 17
-        versionName = "1.0.0"
+        versionCode = 18
+        versionName = "2.0.0"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -64,7 +65,7 @@ kapt {
 
 dependencies {
 
-    val hiltVersion = "2.50"
+    val hiltVersion = "2.51.1"
     val navigationVersion = "1.9.55"
     val retrofitVersion = "2.9.0"
     val coilVersion = "2.5.0"
@@ -79,11 +80,11 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.tv:tv-foundation:1.0.0-alpha07") //пока не трогать, много чего экспериментального
     implementation("androidx.tv:tv-material:1.0.0-alpha07") //пока не трогать, много чего экспериментального
-    implementation("androidx.media3:media3-extractor:1.3.1")
+    implementation("androidx.media3:media3-extractor:1.4.0")
     implementation("androidx.compose.material3:material3:1.2.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.2")
-    implementation("androidx.activity:activity-compose:1.9.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
+    implementation("androidx.activity:activity-compose:1.9.1")
 
     //Analytics
     implementation("io.appmetrica.analytics:analytics:6.5.0")
@@ -101,6 +102,9 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
     implementation("com.squareup.retrofit2:converter-gson:$retrofitVersion")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+
+    //Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
 
     //Jsoup
     implementation ("org.jsoup:jsoup:1.17.2")

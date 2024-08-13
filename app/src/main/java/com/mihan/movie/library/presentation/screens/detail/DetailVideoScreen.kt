@@ -1,6 +1,7 @@
 package com.mihan.movie.library.presentation.screens.detail
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,11 +20,14 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -31,6 +35,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.tv.foundation.lazy.list.TvLazyRow
+import androidx.tv.foundation.lazy.list.items
 import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
@@ -38,8 +44,10 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import coil.compose.SubcomposeAsyncImage
 import com.mihan.movie.library.R
+import com.mihan.movie.library.domain.models.ActorModel
 import com.mihan.movie.library.domain.models.VideoDetailModel
 import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
+import com.mihan.movie.library.presentation.screens.destinations.FilmsWithActorsScreenDestination
 import com.mihan.movie.library.presentation.ui.size16dp
 import com.mihan.movie.library.presentation.ui.size18dp
 import com.mihan.movie.library.presentation.ui.size18sp
@@ -49,9 +57,11 @@ import com.mihan.movie.library.presentation.ui.size28dp
 import com.mihan.movie.library.presentation.ui.size4dp
 import com.mihan.movie.library.presentation.ui.size50dp
 import com.mihan.movie.library.presentation.ui.size60dp
+import com.mihan.movie.library.presentation.ui.size8dp
 import com.mihan.movie.library.presentation.ui.view.FilmDialog
 import com.mihan.movie.library.presentation.ui.view.SerialDialog
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
 private val POSTER_WIDTH = 350.dp
 private val POSTER_HEIGHT = 420.dp
@@ -62,7 +72,8 @@ private const val DARKENING_SCREEN_DURING_LOADING_PROCESS = 0.5f
 @Destination(navArgsDelegate = DetailScreenNavArgs::class, style = AnimatedScreenTransitions::class)
 @Composable
 fun DetailVideoScreen(
-    detailViewModel: DetailViewModel = hiltViewModel()
+    detailViewModel: DetailViewModel = hiltViewModel(),
+    navigator: DestinationsNavigator,
 ) {
     val screenState by detailViewModel.screenState.collectAsStateWithLifecycle()
     val filmDialogState = detailViewModel.showFilmDialog.collectAsStateWithLifecycle()
@@ -80,7 +91,12 @@ fun DetailVideoScreen(
                 videoDetailModel = detailModel,
                 isVideoHasFavourites = isVideoHasFavourites,
                 onButtonWatchClick = detailViewModel::onButtonWatchClicked,
-                onButtonFavouritesClick = detailViewModel::onButtonFavouritesClicked
+                onButtonFavouritesClick = detailViewModel::onButtonFavouritesClicked,
+                onActorClick = { actorModel ->
+                    if (actorModel.actorId.isNotEmpty()) {
+                        navigator.navigate(FilmsWithActorsScreenDestination(actorModel))
+                    }
+                }
             )
         }
         if (screenState.isLoading) {
@@ -125,6 +141,7 @@ private fun Content(
     isVideoHasFavourites: Boolean,
     onButtonWatchClick: () -> Unit,
     onButtonFavouritesClick: () -> Unit,
+    onActorClick: (ActorModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -151,7 +168,8 @@ private fun Content(
                 videoDetailModel = videoDetailModel,
                 isVideoHasFavourites = isVideoHasFavourites,
                 onButtonWatchClick = onButtonWatchClick,
-                onButtonFavouritesClick = onButtonFavouritesClick
+                onButtonFavouritesClick = onButtonFavouritesClick,
+                onActorClick = onActorClick
             )
         }
         Text(
@@ -215,6 +233,7 @@ private fun VideoInfo(
     isVideoHasFavourites: Boolean,
     onButtonWatchClick: () -> Unit,
     onButtonFavouritesClick: () -> Unit,
+    onActorClick: (ActorModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -232,7 +251,11 @@ private fun VideoInfo(
         ItemInfo(title = stringResource(id = R.string.country_title, videoDetailModel.country))
         ItemInfo(title = stringResource(id = R.string.genre_title, videoDetailModel.genre))
         if (videoDetailModel.actors.isNotEmpty())
-            ItemInfo(title = stringResource(id = R.string.actors_title, videoDetailModel.actors))
+            ActorsList(
+                actorsTitleResId = R.string.actors_title,
+                videoDetailModel.actors,
+                onActorClick = onActorClick
+            )
     }
 }
 
@@ -353,4 +376,56 @@ private fun ItemRatingInfo(
             fontSize = size18sp
         )
     }
+}
+
+@Composable
+private fun ActorsList(
+    actorsTitleResId: Int,
+    actors: Map<String, String>,
+    onActorClick: (ActorModel) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Spacer(modifier = Modifier.height(size16dp))
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = size28dp)
+    ) {
+        Text(
+            stringResource(actorsTitleResId),
+            modifier = modifier.padding(end = size8dp)
+        )
+        TvLazyRow {
+            items(actors.entries.toList()) { item ->
+                ActorItem(
+                    item.value,
+                    onItemClick = {
+                        val actorModel = ActorModel(item.key, item.value)
+                        onActorClick(actorModel)
+                    },
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun ActorItem(
+    title: String,
+    onItemClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var focused by remember { mutableStateOf(false) }
+    val textColor = if (focused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
+
+    Text(
+        text = "$title, ",
+        color = textColor,
+        modifier = modifier
+            .onFocusChanged {
+                focused = it.isFocused
+            }
+            .clickable(onClick = onItemClick)
+    )
 }

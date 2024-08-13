@@ -83,17 +83,6 @@ class DataStorePrefs @Inject constructor(@ApplicationContext context: Context) {
         }
     }
 
-    fun getNewUserRegisterStatus(): Flow<Boolean> =
-        dataStore.data.map { prefs ->
-            prefs[REGISTER_NEW_USER_STATUS_KEY] ?: false
-        }
-
-    suspend fun updateNewUserRegisterStatus(isRegistered: Boolean) {
-        dataStore.edit { prefs ->
-            prefs[REGISTER_NEW_USER_STATUS_KEY] = isRegistered
-        }
-    }
-
     suspend fun saveCookies(cookies: Set<String>) {
         dataStore.edit { prefs ->
             prefs[COOKIES_KEY] = cookies
@@ -149,7 +138,6 @@ class DataStorePrefs @Inject constructor(@ApplicationContext context: Context) {
         private val BASE_URL_KEY = stringPreferencesKey("base_url")
         private val PRIMARY_COLOR_KEY = stringPreferencesKey("primary_color")
         private val AUTO_UPDATE_KEY = booleanPreferencesKey("auto_update")
-        private val REGISTER_NEW_USER_STATUS_KEY = booleanPreferencesKey("new_user_key")
         private val USER_AUTH_STATUS_KEY = booleanPreferencesKey("user_auth_status")
         private val NEW_SERIES_STATUS_KEY = booleanPreferencesKey("new_series_status")
         private val COOKIES_KEY = stringSetPreferencesKey("cookies_key")

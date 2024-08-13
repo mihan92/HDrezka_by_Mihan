@@ -61,4 +61,6 @@ interface ParserRepository {
     suspend fun getNewSeriesList(): ApiResponse<List<NewSeriesModel>>
 
     suspend fun getRemoteHistoryList(): ApiResponse<List<VideoHistoryModel>>
+
+    suspend fun getListVideoByActorId(actorId: String): ApiResponse<List<VideoItemModel>>
 }

@@ -18,6 +18,6 @@ enum class VideoCategory(@StringRes val titleResId: Int, val category: String, v
     TvShow(R.string.tv_show_title,"ТВ шоу","&genre=4", colorTvShowsCategory);
 
     companion object {
-        fun getColorFromCategory(category: String) = entries.firstOrNull { it.category == category }?.color ?: Film.color
+        fun getColorFromCategory(category: String) = entries.lastOrNull { category.contains(it.category) }?.color ?: Film.color
     }
 }

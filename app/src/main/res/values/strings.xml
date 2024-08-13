@@ -45,7 +45,7 @@
     <string name="genre_title">Жанр: %\s</string>
     <string name="primary_color_title">Основной цвет</string>
     <string name="primary_color_description">Выберите основной цвет приложения на своё усмотрение</string>
-    <string name="actors_title">В ролях: %\s</string>
+    <string name="actors_title">В ролях:</string>
     <string name="history_route_title">История</string>
     <string name="history_screen_placeholder">История просмотров пустая</string>
     <string name="favourites_route_title">Избранное</string>
@@ -69,4 +69,9 @@
     <string name="new_series">Новые серии</string>
     <string name="new_series_screen_placeholder">Новых серий пока нет</string>
     <string name="updated_url_message">Ссылка на сайт обновлена %1$s При необходимости авторизуйтесь заново</string>
+    <string name="video_with_actor_title">Видео с участием %1$s</string>
+    <string name="films_with_actors_screen_placeholder">Видео с участием этого актёра не найдены</string>
+    <string name="attention_title">Внимание</string>
+    <string name="unsupported_device_description">Вы пытаетесь запустить приложение на неподдерживаемом устройстве. MovieLibrary работает только на платформах Google TV и Android TV. Установите приложение на поддерживаемое устройство, чтобы оно работало корректно. Иначе корректная работа приложения не гарантируется!</string>
+    <string name="understand_title">ПОНЯТНО</string>
 </resources>

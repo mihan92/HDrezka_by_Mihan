@@ -217,4 +217,20 @@ class ParserRepositoryImpl @Inject constructor(
             { result -> ApiResponse.Success(result) },
             { error -> ApiResponse.Error("getRemoteHistoryList error: ${error.message}") }
         )
+
+    override suspend fun getListVideoByActorId(actorId: String): ApiResponse<List<VideoItemModel>> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                remoteParserApi.getListVideoByActorId(actorId).execute()
+            }.fold(
+                { response ->
+                    if (response.isSuccessful && response.body() != null) {
+                        val itemList = response.body()?.map { it.toVideoItemModel() }
+                        ApiResponse.Success(itemList ?: emptyList())
+                    } else
+                        ApiResponse.Error(response.errorBody()?.string() ?: "getListVideoByActorId api error")
+                },
+                { error -> ApiResponse.Error("getListVideoByActorId error: ${error.message}") }
+            )
+        }
 }
