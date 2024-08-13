@@ -2,6 +2,7 @@ package com.mihan.movie.library.presentation.ui.view
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
@@ -26,11 +27,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import coil.compose.SubcomposeAsyncImage
+import com.mihan.movie.library.R
+import com.mihan.movie.library.common.extentions.logger
 import com.mihan.movie.library.common.models.VideoCategory
 import com.mihan.movie.library.presentation.ui.size10dp
 import com.mihan.movie.library.presentation.ui.size18sp
@@ -74,6 +78,7 @@ fun MovieItem(
                 SubcomposeAsyncImage(
                     model = imageUrl,
                     loading = { CircularProgressIndicator(color = MaterialTheme.colorScheme.primary) },
+                    error = { Image(painter = painterResource(R.drawable.no_image_placeholder), null) },
                     contentDescription = title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier

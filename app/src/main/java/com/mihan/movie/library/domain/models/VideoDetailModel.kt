@@ -10,6 +10,6 @@ data class VideoDetailModel(
     val ratingKp: String,
     val ratingRezka: String,
     val genre: String,
-    val actors: String,
+    val actors: Map<String, String>,
     val imageUrl: String,
 )

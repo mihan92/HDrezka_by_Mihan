@@ -2,7 +2,6 @@ package com.mihan.movie.library.presentation.screens.new_series
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavHostController
 import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.common.Constants
 import com.mihan.movie.library.common.DataStorePrefs
@@ -19,7 +18,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,8 +25,7 @@ class NewSeriesViewModel @Inject constructor(
     private val getNewSeriesUseCase: GetNewSeriesUseCase,
     private val deleteWatchedVideoUseCase: DeleteWatchedVideoUseCase,
     private val eventManager: EventManager,
-    private val dataStorePrefs: DataStorePrefs,
-    private val navController: NavHostController
+    private val dataStorePrefs: DataStorePrefs
 ) : ViewModel() {
 
     private val _screenState = MutableStateFlow(NewSeriesScreenState())
@@ -47,9 +44,6 @@ class NewSeriesViewModel @Inject constructor(
                 is ApiResponse.Success -> _screenState.update {
                     if (result.data.isEmpty()) {
                         dataStorePrefs.updateNewSeriesStatus(false)
-                        withContext(Dispatchers.Main) {
-                            navController.navigateUp()
-                        }
                     }
                     NewSeriesScreenState(data = result.data)
                 }

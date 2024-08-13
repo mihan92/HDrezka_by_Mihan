@@ -17,3 +17,5 @@ local.properties
 keystore.jks
 /.idea/deploymentTargetSelector.xml
 .idea/other.xml
+/.idea/codeStyles/codeStyleConfig.xml
+/.idea/codeStyles/Project.xml

@@ -13,7 +13,7 @@ data class VideoDetailDto(
     val ratingKp: String = EMPTY_STRING,
     val ratingHdrezka: String = EMPTY_STRING,
     val genre: String = EMPTY_STRING,
-    val actors: String = EMPTY_STRING,
+    val actors: Map<String, String> = emptyMap(),
     val imageUrl: String = EMPTY_STRING,
 )
 

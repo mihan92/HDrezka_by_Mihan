@@ -1,9 +1,6 @@
 package com.mihan.movie.library.di
 
 import android.content.Context
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.ComposeNavigator
-import androidx.navigation.compose.DialogNavigator
 import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.common.utils.EventManagerImpl
 import com.mihan.movie.library.common.utils.VoiceRecognizer
@@ -50,13 +47,5 @@ interface ActivityRetainedModule {
 
         @[Provides ActivityRetainedScoped]
         fun provideVoiceRecognizer(@ApplicationContext context: Context) = VoiceRecognizer(context)
-
-        @[Provides ActivityRetainedScoped]
-        fun provideNavController(
-            @ApplicationContext context: Context
-        ): NavHostController = NavHostController(context).apply {
-            navigatorProvider.addNavigator(ComposeNavigator())
-            navigatorProvider.addNavigator(DialogNavigator())
-        }
     }
 }
