@@ -1,5 +1,6 @@
 package com.mihan.movie.library.presentation.ui.view
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,6 +36,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -155,36 +157,41 @@ private fun ExpandableSeasonList(
     videoHistoryModel: VideoHistoryModel?,
     onEpisodeClicked: (String, String) -> Unit
 ) {
-    val activeSeason = videoHistoryModel?.season ?: ""
-    val isExpandedMap = remember {
-        val map = mutableStateMapOf<Int, Boolean>()
-        sections.forEachIndexed { index, seasonModel ->
-            map[index] = seasonModel.season == activeSeason
-        }
-        map
-    }
-    val activeEpisodeIndex = videoHistoryModel?.episode?.toInt() ?: 0
-    val activeSeasonIndex = videoHistoryModel?.season?.toInt() ?: 0
-    val initialIndex = if (activeEpisodeIndex > 5) activeEpisodeIndex else activeSeasonIndex
-    val state = rememberTvLazyListState(initialFirstVisibleItemIndex = initialIndex)
-    TvLazyColumn(
-        state = state,
-        content = {
-            sections.onEachIndexed { index, value ->
-                section(
-                    header = value.season,
-                    listData = value.episodes,
-                    isActiveSeason = value.season == videoHistoryModel?.season,
-                    activeEpisode = videoHistoryModel?.episode,
-                    isExpanded = isExpandedMap[index] ?: false,
-                    onHeaderClick = {
-                        isExpandedMap[index] = !(isExpandedMap[index] ?: true)
-                    },
-                    onEpisodeClicked = { onEpisodeClicked(value.season, it) }
-                )
+    val context = LocalContext.current
+    runCatching {
+        val activeSeason = videoHistoryModel?.season ?: ""
+        val isExpandedMap = remember {
+            val map = mutableStateMapOf<Int, Boolean>()
+            sections.forEachIndexed { index, seasonModel ->
+                map[index] = seasonModel.season == activeSeason
             }
+            map
         }
-    )
+        val activeEpisodeIndex = videoHistoryModel?.episode?.toInt() ?: 0
+        val activeSeasonIndex = videoHistoryModel?.season?.toInt() ?: 0
+        val initialIndex = if (activeEpisodeIndex > 5) activeEpisodeIndex else activeSeasonIndex
+        val state = rememberTvLazyListState(initialFirstVisibleItemIndex = initialIndex)
+        TvLazyColumn(
+            state = state,
+            content = {
+                sections.onEachIndexed { index, value ->
+                    section(
+                        header = value.season,
+                        listData = value.episodes,
+                        isActiveSeason = value.season == videoHistoryModel?.season,
+                        activeEpisode = videoHistoryModel?.episode,
+                        isExpanded = isExpandedMap[index] ?: false,
+                        onHeaderClick = {
+                            isExpandedMap[index] = !(isExpandedMap[index] ?: true)
+                        },
+                        onEpisodeClicked = { onEpisodeClicked(value.season, it) }
+                    )
+                }
+            }
+        )
+    }.onFailure {
+        Toast.makeText(context, stringResource(R.string.error_msg_cant_process_episode), Toast.LENGTH_LONG).show()
+    }
 }
 
 @Composable
