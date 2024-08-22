@@ -18,8 +18,8 @@ android {
         applicationId = "com.mihan.movie.library"
         minSdk = 28
         targetSdk = 34
-        versionCode = 19
-        versionName = "2.0.1"
+        versionCode = 20
+        versionName = "2.0.2"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -71,7 +71,7 @@ dependencies {
     val coilVersion = "2.5.0"
     val dataStoreVersion = "1.1.1"
     val permissionsVersion = "0.25.1"
-    val composeBomVersion = "2024.06.00"
+    val composeBomVersion = "2024.08.00"
     val roomVersion = "2.6.1"
 
     implementation("androidx.core:core-ktx:1.13.1")
@@ -87,7 +87,7 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.9.1")
 
     //Analytics
-    implementation("io.appmetrica.analytics:analytics:6.5.0")
+    implementation("io.appmetrica.analytics:analytics:7.0.0")
 
     //DI
     implementation("com.google.dagger:hilt-android:$hiltVersion")

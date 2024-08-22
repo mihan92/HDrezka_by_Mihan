@@ -9,9 +9,9 @@ import javax.inject.Inject
 
 class GetVideosByTitleUseCase @Inject constructor(private val parserRepository: ParserRepository) {
 
-    suspend operator fun invoke(videoTitle: String): Flow<ApiResponse<List<VideoItemModel>>> = flow {
+    suspend operator fun invoke(videoTitle: String, page: String): Flow<ApiResponse<List<VideoItemModel>>> = flow {
             emit(ApiResponse.Loading)
-            when(val result = parserRepository.getVideosByTitle(videoTitle)) {
+            when(val result = parserRepository.getListVideoByTitle(videoTitle, page)) {
                 is ApiResponse.Loading -> Unit
                 is ApiResponse.Error -> emit(ApiResponse.Error(result.errorMessage))
                 is ApiResponse.Success -> emit(ApiResponse.Success(result.data))

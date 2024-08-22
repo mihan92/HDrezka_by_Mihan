@@ -65,4 +65,11 @@ interface RemoteParserApiService {
     fun getListVideoByActorId(
         @Query("actor_id") actorId: String
     ): Call<List<VideoItemDto>>
+
+    @Headers("Authorization: ${BuildConfig.ACCESS_TOKEN}")
+    @GET("api/getListVideoByTitle")
+    fun getListVideoByTitle(
+        @Query("title") title: String,
+        @Query("page") page: String,
+    ): Call<List<VideoItemDto>>
 }

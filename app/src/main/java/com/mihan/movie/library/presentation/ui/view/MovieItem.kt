@@ -34,7 +34,6 @@ import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import coil.compose.SubcomposeAsyncImage
 import com.mihan.movie.library.R
-import com.mihan.movie.library.common.extentions.logger
 import com.mihan.movie.library.common.models.VideoCategory
 import com.mihan.movie.library.presentation.ui.size10dp
 import com.mihan.movie.library.presentation.ui.size18sp
@@ -77,7 +76,7 @@ fun MovieItem(
             ) {
                 SubcomposeAsyncImage(
                     model = imageUrl,
-                    loading = { CircularProgressIndicator(color = MaterialTheme.colorScheme.primary) },
+                    loading = { LoadingIndicator() },
                     error = { Image(painter = painterResource(R.drawable.no_image_placeholder), null) },
                     contentDescription = title,
                     contentScale = ContentScale.Crop,
@@ -149,5 +148,18 @@ private fun Category(
             fontWeight = FontWeight.W700,
             color = MaterialTheme.colorScheme.onBackground
         )
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun LoadingIndicator(
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
     }
 }
