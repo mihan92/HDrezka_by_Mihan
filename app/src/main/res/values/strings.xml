@@ -74,4 +74,5 @@
     <string name="attention_title">Внимание</string>
     <string name="unsupported_device_description">Вы пытаетесь запустить приложение на неподдерживаемом устройстве. MovieLibrary работает только на платформах Google TV и Android TV. Установите приложение на поддерживаемое устройство, чтобы оно работало корректно. Иначе корректная работа приложения не гарантируется!</string>
     <string name="understand_title">ПОНЯТНО</string>
+    <string name="error_msg_cant_process_episode">Что-то пошло не так.. Не могу обработать этот сезон или эпизод</string>
 </resources>

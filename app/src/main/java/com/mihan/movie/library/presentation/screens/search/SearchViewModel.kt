@@ -34,10 +34,10 @@ class SearchViewModel @Inject constructor(
         voiceRecognizer.stopListening()
     }
 
-    fun buttonSearchPressed(searchingText: String) {
+    fun buttonSearchPressed(searchingText: String, page: String) {
         if (searchingText.isNotEmpty()) {
             viewModelScope.launch {
-                getVideosByTitleUseCase(searchingText)
+                getVideosByTitleUseCase(searchingText, page)
                     .onEach { result ->
                         when (result) {
                             is ApiResponse.Error -> {

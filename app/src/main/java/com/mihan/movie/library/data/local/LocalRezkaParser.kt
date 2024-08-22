@@ -10,7 +10,6 @@ import com.mihan.movie.library.data.models.NewSeriesModelDto
 import com.mihan.movie.library.data.models.StreamDto
 import com.mihan.movie.library.data.models.UserInfoDto
 import com.mihan.movie.library.data.models.VideoHistoryModelDto
-import com.mihan.movie.library.data.models.VideoItemDto
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -88,36 +87,6 @@ class LocalRezkaParser @Inject constructor(
             }
             addAll(streamList)
         }.firstOrNull { it.quality == getVideoQuality() } ?: streamList.last()
-    }
-
-    suspend fun getVideosByTitle(videoTitle: String): List<VideoItemDto> = withContext(Dispatchers.IO) {
-        buildList {
-            val document = getConnection("${getBaseUrl()}$SEARCH_URL").data("q", videoTitle).post()
-            val element = document.select("div.b-content__inline_item")
-            for (i in 0 until element.size) {
-                val title = element.select("div.b-content__inline_item-link")
-                    .select("a")
-                    .eq(i)
-                    .text()
-                val imageUrl = element.select("img")
-                    .eq(i)
-                    .attr("src")
-                val movieUrl = element.select("div.b-content__inline_item-cover")
-                    .select("a")
-                    .eq(i)
-                    .attr("href")
-                val category = element.select("i.entity")
-                    .eq(i)
-                    .text()
-                val movie = VideoItemDto(
-                    title = title,
-                    category = category,
-                    imageUrl = imageUrl,
-                    videoUrl = movieUrl
-                )
-                add(movie)
-            }
-        }
     }
 
     suspend fun getStreamsByTranslationId(translatorId: String, filmId: String): StreamDto =
@@ -328,6 +297,5 @@ class LocalRezkaParser @Inject constructor(
         private const val REQUEST_HEADER_ENABLE_METADATA_VALUE = "1"
         private const val APP_HEADER = "X-App-Hdrezka-App"
         private const val GET_STREAM_POST = "/ajax/get_cdn_series"
-        private const val SEARCH_URL = "/search/?do=search&subaction=search"
     }
 }

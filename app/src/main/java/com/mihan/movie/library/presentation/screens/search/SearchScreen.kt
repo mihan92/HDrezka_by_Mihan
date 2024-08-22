@@ -3,8 +3,13 @@ package com.mihan.movie.library.presentation.screens.search
 import android.Manifest
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,10 +23,14 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,19 +59,25 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.mihan.movie.library.R
+import com.mihan.movie.library.common.Constants
 import com.mihan.movie.library.common.utils.VoiceRecognizerState
 import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
 import com.mihan.movie.library.presentation.screens.destinations.DetailVideoScreenDestination
+import com.mihan.movie.library.presentation.ui.size10dp
 import com.mihan.movie.library.presentation.ui.size16dp
 import com.mihan.movie.library.presentation.ui.size18sp
 import com.mihan.movie.library.presentation.ui.size28dp
 import com.mihan.movie.library.presentation.ui.view.MovieItem
+import com.mihan.movie.library.presentation.ui.view.PageFooter
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
 private const val SEARCH_FIELD_BACKGROUND_ALPHA = 0.1f
 private const val NUMBER_OF_GRID_CELLS = 6
 private const val TEXT_HINT_ALPHA = 0.5f
+
+private val LocalCurrentPage = compositionLocalOf { 1 }
+private val LocalSearchString = compositionLocalOf { Constants.EMPTY_STRING }
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Destination(style = AnimatedScreenTransitions::class)
@@ -75,21 +90,40 @@ fun SearchScreen(
     val voicePermission = rememberPermissionState(permission = Manifest.permission.RECORD_AUDIO)
     val voiceState by searchViewModel.voiceState.collectAsStateWithLifecycle()
     val screenState by searchViewModel.screenState.collectAsStateWithLifecycle()
-    Content(
-        voiceState = voiceState,
-        screenState = screenState,
-        onVideoItemClick = { navigator.navigate(DetailVideoScreenDestination(it)) },
-        buttonSearchPressed = searchViewModel::buttonSearchPressed,
-        buttonVoicePressed = {
-            if (!voicePermission.status.isGranted)
-                voicePermission.launchPermissionRequest()
-            else {
-                if (!voiceState.isSpeaking) searchViewModel.startListening() else searchViewModel.stopListening()
+    var currentPage by rememberSaveable { mutableIntStateOf(1) }
+    var searchString by rememberSaveable { mutableStateOf("") }
+    CompositionLocalProvider(
+        LocalCurrentPage provides currentPage,
+        LocalSearchString provides searchString
+    ) {
+        Content(
+            voiceState = voiceState,
+            screenState = screenState,
+            onVideoItemClick = { navigator.navigate(DetailVideoScreenDestination(it)) },
+            buttonSearchPressed = {
+                searchString = it
+                searchViewModel.buttonSearchPressed(it, currentPage.toString())
+            },
+            buttonVoicePressed = {
+                if (!voicePermission.status.isGranted)
+                    voicePermission.launchPermissionRequest()
+                else {
+                    if (!voiceState.isSpeaking) searchViewModel.startListening() else searchViewModel.stopListening()
+                }
+            },
+            previousPageClick = {
+                currentPage--
+                searchViewModel.buttonSearchPressed(searchString, currentPage.toString())
+
+            },
+            nextPageClick = {
+                currentPage++
+                searchViewModel.buttonSearchPressed(searchString, currentPage.toString())
             }
-        }
-    )
-    if (voiceState.error.isNotEmpty())
-        Toast.makeText(context, voiceState.error, Toast.LENGTH_LONG).show()
+        )
+        if (voiceState.error.isNotEmpty())
+            Toast.makeText(context, voiceState.error, Toast.LENGTH_LONG).show()
+    }
 }
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -100,9 +134,10 @@ private fun Content(
     onVideoItemClick: (String) -> Unit,
     buttonSearchPressed: (String) -> Unit,
     buttonVoicePressed: () -> Unit,
+    previousPageClick: () -> Unit,
+    nextPageClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val state = rememberTvLazyGridState()
     val focusRequester = remember { FocusRequester() }
     Column(modifier = modifier.fillMaxSize()) {
         SearchField(
@@ -118,24 +153,42 @@ private fun Content(
             if (screenState.isLoading)
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             else if (!screenState.listOfVideo.isNullOrEmpty()) {
-                TvLazyVerticalGrid(
-                    state = state,
-                    columns = TvGridCells.Fixed(NUMBER_OF_GRID_CELLS),
-                    modifier = modifier
-                        .fillMaxSize()
-                        .focusRequester(focusRequester)
+                Box(
+                    contentAlignment = Alignment.BottomCenter,
+                    modifier = modifier.padding(bottom = size10dp)
                 ) {
-                    items(screenState.listOfVideo) { item ->
-                        MovieItem(
-                            title = item.title,
-                            category = item.category,
-                            imageUrl = item.imageUrl,
-                            onItemClick = { onVideoItemClick(item.videoUrl) },
+                    val state = rememberTvLazyGridState()
+                    TvLazyVerticalGrid(
+                        state = state,
+                        columns = TvGridCells.Fixed(NUMBER_OF_GRID_CELLS),
+                        modifier = modifier
+                            .fillMaxSize()
+                            .focusRequester(focusRequester)
+                    ) {
+                        items(screenState.listOfVideo) { item ->
+                            MovieItem(
+                                title = item.title,
+                                category = item.category,
+                                imageUrl = item.imageUrl,
+                                onItemClick = { onVideoItemClick(item.videoUrl) },
+                            )
+                        }
+                    }
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = !state.canScrollForward,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
+                    ) {
+                        PageFooter(
+                            currentPage = LocalCurrentPage.current,
+                            listSize = screenState.listOfVideo.size,
+                            previousPageClick = previousPageClick,
+                            nextPageClick = nextPageClick
                         )
                     }
-                }
-                LaunchedEffect(Unit) {
-                    focusRequester.requestFocus()
+                    LaunchedEffect(Unit) {
+                        focusRequester.requestFocus()
+                    }
                 }
             } else if (screenState.listOfVideo != null && screenState.listOfVideo.isEmpty())
                 TextHint(hintResId = R.string.hint_no_results)
@@ -152,7 +205,8 @@ private fun SearchField(
     modifier: Modifier = Modifier,
 ) {
     val focusManager = LocalFocusManager.current
-    var searchText by remember { mutableStateOf("") }
+    val searchString = LocalSearchString.current
+    var searchText by remember { mutableStateOf(searchString) }
     if (voiceState.spokenText.isNotEmpty()) {
         searchText = voiceState.spokenText
         buttonSearchPressed(searchText)

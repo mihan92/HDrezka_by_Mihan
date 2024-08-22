@@ -48,6 +48,7 @@ fun AppUpdatesScreen(
 ) {
     val changelogModel = appUpdatesViewModel.changelogModel
     val downloadState by appUpdatesViewModel.downloadState.collectAsStateWithLifecycle()
+    val focusRequester = remember { FocusRequester() }
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -56,6 +57,7 @@ fun AppUpdatesScreen(
         if (!downloadState.isDownloading)
             Content(
                 changelogModel = changelogModel,
+                focusRequester = focusRequester,
                 onButtonUpdatePressed = appUpdatesViewModel::buttonUpdatePressed
             )
         else
@@ -67,10 +69,10 @@ fun AppUpdatesScreen(
 @Composable
 private fun Content(
     changelogModel: ChangelogModel?,
+    focusRequester: FocusRequester,
     onButtonUpdatePressed: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val focusRequester = remember { FocusRequester() }
     changelogModel?.let { model ->
         Column(
             modifier = modifier.fillMaxWidth(0.6f),

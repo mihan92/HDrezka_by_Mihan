@@ -48,7 +48,7 @@ interface ParserRepository {
         episode: String
     ): ApiResponse<StreamModel>
 
-    suspend fun getVideosByTitle(videoTitle: String): ApiResponse<List<VideoItemModel>>
+    suspend fun getListVideoByTitle(videoTitle: String, page: String): ApiResponse<List<VideoItemModel>>
 
     suspend fun getBaseUrl(): ApiResponse<BaseUrlModel>
 
