@@ -53,6 +53,7 @@ interface RemoteParserApiService {
     @Headers("Authorization: ${BuildConfig.ACCESS_TOKEN}")
     @GET("api/seasonListById")
     fun getSeasonsByTranslatorId(
+        @Query("filmId") filmId: String,
         @Query("translatorId") translatorId: String
     ): Call<List<SerialModelDto>>
 
