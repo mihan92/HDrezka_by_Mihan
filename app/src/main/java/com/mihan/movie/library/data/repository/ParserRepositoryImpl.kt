@@ -165,7 +165,7 @@ class ParserRepositoryImpl @Inject constructor(
         filmId: String
     ): ApiResponse<List<SerialModel>> = withContext(Dispatchers.IO) {
         runCatching {
-            remoteParserApi.getSeasonsByTranslatorId(translatorId).execute()
+            remoteParserApi.getSeasonsByTranslatorId(filmId, translatorId).execute()
         }.fold(
             { response ->
                 if (response.isSuccessful && response.body() != null) {
