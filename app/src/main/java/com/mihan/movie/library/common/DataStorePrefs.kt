@@ -6,7 +6,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.mihan.movie.library.common.models.Colors
 import com.mihan.movie.library.common.models.VideoCategory
@@ -83,42 +82,6 @@ class DataStorePrefs @Inject constructor(@ApplicationContext context: Context) {
         }
     }
 
-    suspend fun saveCookies(cookies: Set<String>) {
-        dataStore.edit { prefs ->
-            prefs[COOKIES_KEY] = cookies
-        }
-    }
-
-    fun getCookies(): Flow<Set<String>> =
-        dataStore.data.map { prefs ->
-            prefs[COOKIES_KEY] ?: emptySet()
-        }
-
-    suspend fun clearCookies() {
-        dataStore.edit { prefs ->
-            prefs[COOKIES_KEY] = emptySet()
-            prefs[USER_ID_KEY] = Constants.EMPTY_STRING
-            prefs[USER_AUTH_STATUS_KEY] = prefs[USER_ID_KEY]?.isNotEmpty() ?: false
-        }
-    }
-
-    suspend fun saveUserId(userId: String) {
-        dataStore.edit { prefs ->
-            prefs[USER_ID_KEY] = userId
-            prefs[USER_AUTH_STATUS_KEY] = prefs[USER_ID_KEY]?.isNotEmpty() ?: false
-        }
-    }
-
-    fun getUserId(): Flow<String> =
-        dataStore.data.map { prefs ->
-            prefs[USER_ID_KEY] ?: Constants.EMPTY_STRING
-        }
-
-    fun getUserAuthorizationStatus(): Flow<Boolean> =
-        dataStore.data.map { prefs ->
-            prefs[USER_AUTH_STATUS_KEY] ?: false
-        }
-
     fun getNewSeriesStatus(): Flow<Boolean> =
         dataStore.data.map { prefs ->
             prefs[NEW_SERIES_STATUS_KEY] ?: false
@@ -130,18 +93,27 @@ class DataStorePrefs @Inject constructor(@ApplicationContext context: Context) {
         }
     }
 
+    fun getNotificationMessage(): Flow<String> =
+        dataStore.data.map { prefs ->
+            prefs[NOTIFICATION_MESSAGE_KEY] ?: Constants.EMPTY_STRING
+        }
+
+    suspend fun updateNotificationMessage(message: String) {
+        dataStore.edit { prefs ->
+            prefs[NOTIFICATION_MESSAGE_KEY] = message
+        }
+    }
+
     companion object {
         private const val DATA_STORE_NAME = "data_store_preferences"
         private val APP_UPDATES_KEY = booleanPreferencesKey("app_updates_key")
         private val VIDEO_CATEGORY_KEY = stringPreferencesKey("video_category")
+        private val NOTIFICATION_MESSAGE_KEY = stringPreferencesKey("notification_message")
         private val VIDEO_QUALITY_KEY = stringPreferencesKey("video_quality")
         private val BASE_URL_KEY = stringPreferencesKey("base_url")
         private val PRIMARY_COLOR_KEY = stringPreferencesKey("primary_color")
         private val AUTO_UPDATE_KEY = booleanPreferencesKey("auto_update")
-        private val USER_AUTH_STATUS_KEY = booleanPreferencesKey("user_auth_status")
         private val NEW_SERIES_STATUS_KEY = booleanPreferencesKey("new_series_status")
-        private val COOKIES_KEY = stringSetPreferencesKey("cookies_key")
-        private val USER_ID_KEY = stringPreferencesKey("user_id_key")
         private val DEFAULT_VIDEO_CATEGORY = VideoCategory.All
         private val DEFAULT_VIDEO_QUALITY = VideoQuality.Quality1080
         private val DEFAULT_PRIMARY_COLOR = Colors.Color0

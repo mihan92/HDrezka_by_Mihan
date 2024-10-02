@@ -12,5 +12,4 @@ interface AuthRepository {
 
     suspend fun deleteWatchedVideo(dataId: String)
 
-    suspend fun markAsViewed(dataId: String)
 }

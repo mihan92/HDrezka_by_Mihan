@@ -4,10 +4,11 @@ import android.app.DownloadManager
 import android.content.Context
 import androidx.room.Room
 import com.mihan.movie.library.common.Constants
-import com.mihan.movie.library.common.DataStorePrefs
 import com.mihan.movie.library.common.utils.CookieManager
 import com.mihan.movie.library.common.utils.DownloadManagerImpl
 import com.mihan.movie.library.common.utils.IDownloadManager
+import com.mihan.movie.library.common.utils.SharedPrefs
+import com.mihan.movie.library.common.utils.UserAgentInterceptor
 import com.mihan.movie.library.data.local.db.FavouritesDao
 import com.mihan.movie.library.data.local.db.FavouritesDataBase
 import com.mihan.movie.library.data.local.db.VideoHistoryDao
@@ -21,13 +22,11 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.CoroutineScope
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
-
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -45,8 +44,11 @@ interface AppModule {
 
         @Provides
         @Singleton
-        fun provideCookieManager(dataStorePrefs: DataStorePrefs, @IODispatcher scope: CoroutineScope) =
-            CookieManager(dataStorePrefs, scope)
+        fun provideSharedPrefs(@ApplicationContext context: Context) = SharedPrefs(context)
+
+        @Provides
+        @Singleton
+        fun provideCookieManager(sharedPrefs: SharedPrefs) = CookieManager(sharedPrefs)
 
         @Provides
         @Singleton
@@ -55,11 +57,17 @@ interface AppModule {
 
         @Provides
         @Singleton
-        fun provideOkHttpClient(interceptor: HttpLoggingInterceptor, cookieManager: CookieManager): OkHttpClient =
+        fun provideOkHttpClient(
+            interceptor: HttpLoggingInterceptor,
+            cookieManager: CookieManager,
+            userAgentInterceptor: UserAgentInterceptor
+        ): OkHttpClient =
             OkHttpClient
                 .Builder()
                 .cookieJar(cookieManager)
+                .addInterceptor(cookieManager)
                 .addInterceptor(interceptor)
+                .addInterceptor(userAgentInterceptor)
                 .build()
 
         @Provides

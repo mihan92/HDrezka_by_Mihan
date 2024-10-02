@@ -11,6 +11,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
@@ -26,6 +27,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.foundation.lazy.grid.TvGridCells
@@ -34,6 +36,7 @@ import androidx.tv.foundation.lazy.grid.items
 import androidx.tv.foundation.lazy.grid.rememberTvLazyGridState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.Text
 import com.mihan.movie.library.R
 import com.mihan.movie.library.domain.models.VideoItemModel
 import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
@@ -49,6 +52,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
 private const val numberOfGridCells = 6
+private const val PLACEHOLDER_MESSAGE_WIDTH = .8f
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Destination(style = AnimatedScreenTransitions::class)
@@ -83,7 +87,7 @@ fun HomeScreen(
         ) {
             if (screenState.isLoading)
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-            if (screenState.data.isNotEmpty()) {
+            else if (screenState.data.isNotEmpty()) {
                 var page = if (selectedTopBarItem == TopBarItems.Filter) currentFilteredPage else currentDefaultPage
                 Content(
                     listOfVideos = screenState.data,
@@ -92,7 +96,12 @@ fun HomeScreen(
                     previousPageClick = { viewModel.onPageChanged(--page) },
                     nextPageClick = { viewModel.onPageChanged(++page) }
                 )
-            }
+            } else
+                Text(
+                    text = stringResource(R.string.main_screen_placeholder_message),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(PLACEHOLDER_MESSAGE_WIDTH)
+                )
             FilterDialog(
                 categoryFilter = categoryFilter,
                 genreFilter = genreFilter,

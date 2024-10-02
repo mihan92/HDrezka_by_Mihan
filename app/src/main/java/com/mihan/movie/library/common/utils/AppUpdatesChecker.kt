@@ -5,7 +5,7 @@ import com.mihan.movie.library.common.DataStorePrefs
 import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.common.extentions.logger
 import com.mihan.movie.library.domain.models.ChangelogModel
-import com.mihan.movie.library.domain.usecases.app_updates.CheckUpdatesUseCase
+import com.mihan.movie.library.domain.usecases.gson_repository.CheckUpdatesUseCase
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

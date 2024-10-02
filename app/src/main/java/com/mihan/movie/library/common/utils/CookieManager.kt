@@ -1,45 +1,44 @@
 package com.mihan.movie.library.common.utils
 
 import com.mihan.movie.library.common.Constants
-import com.mihan.movie.library.common.DataStorePrefs
-import com.mihan.movie.library.di.IODispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
+import okhttp3.Interceptor
+import okhttp3.Response
 import javax.inject.Inject
 
 
 class CookieManager @Inject constructor(
-    private val dataStorePrefs: DataStorePrefs,
-    @IODispatcher private val scope: CoroutineScope
-) : CookieJar {
+    private val sharedPrefs: SharedPrefs,
+) : CookieJar, Interceptor {
 
-    private val tempCookieList = mutableListOf<String>()
-
-    init {
-        scope.launch {
-            dataStorePrefs.getCookies().collect { cookies ->
-                tempCookieList.clear()
-                tempCookieList.addAll(cookies)
-            }
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val originalRequest = chain.request()
+        val cookies = sharedPrefs.getCookies()
+        // Добавляем куки в заголовок запроса, если они есть
+        val newRequest = if (cookies.isNotEmpty()) {
+            originalRequest.newBuilder()
+                .header("Cookie", cookies.joinToString("; "))
+                .build()
+        } else {
+            originalRequest
         }
+        return chain.proceed(newRequest)
     }
 
     override fun loadForRequest(url: HttpUrl): List<Cookie> {
-        return tempCookieList.mapNotNull { cookieString -> Cookie.parse(url, cookieString) }
+        val cookies = sharedPrefs.getCookies()
+        return cookies.mapNotNull { cookieString -> Cookie.parse(url, cookieString) }
     }
 
     override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
         if (!url.encodedPath.contains(ROUTE_FOR_COOKIES)) return // Забираем куки только со страницы авторизации
-        scope.launch {
-            val userId = extractDleUserIdFromCookies(cookies)
-            val cookieSet =
-                cookies.filterNot { it.value == DELETED_COOKIES }.map { cookie -> cookie.toString() }.toSet()
-            dataStorePrefs.saveCookies(cookieSet)
-            if (userId.isNotEmpty()) dataStorePrefs.saveUserId(userId)
-        }
+        val userId = extractDleUserIdFromCookies(cookies)
+        //val cookieSet = cookies.filterNot { it.value == DELETED_COOKIES }.map { cookie -> cookie.toString() }.toSet()
+        val cookieSet = cookies.takeLast(3).map { cookie -> cookie.toString() }.toSet()
+        sharedPrefs.saveCookies(cookieSet)
+        if (userId.isNotEmpty()) sharedPrefs.saveUserId(userId)
     }
 
 

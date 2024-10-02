@@ -11,4 +11,5 @@ object Constants {
     const val ACTION_DOWNLOAD_COMPLETE = "android.intent.action.DOWNLOAD_COMPLETE"
     const val MIME_TYPE = "application/vnd.android.package-archive"
     const val DOWNLOADED_FILE_NAME = "movielibrary-release.apk"
+    const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
 }

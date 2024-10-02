@@ -3,6 +3,7 @@ package com.mihan.movie.library.data.repository
 import com.mihan.movie.library.common.DataStorePrefs
 import com.mihan.movie.library.common.extentions.logger
 import com.mihan.movie.library.common.utils.EventManager
+import com.mihan.movie.library.common.utils.SharedPrefs
 import com.mihan.movie.library.data.remote.AuthApiService
 import com.mihan.movie.library.domain.AuthRepository
 import com.mihan.movie.library.domain.models.WatchedVideoModel
@@ -19,6 +20,7 @@ import javax.inject.Inject
 class AuthRepositoryImpl @Inject constructor(
     private val authApiService: AuthApiService,
     private val dataStorePrefs: DataStorePrefs,
+    private val sharedPrefs: SharedPrefs,
     private val eventManager: EventManager
 ) : AuthRepository {
 
@@ -61,7 +63,7 @@ class AuthRepositoryImpl @Inject constructor(
             withContext(Dispatchers.IO) {
                 val url = dataStorePrefs.getBaseUrl().first() + LOGOUT_ROUTE
                 authApiService.logout(url).execute()
-                dataStorePrefs.clearCookies()
+                sharedPrefs.clearCookies()
             }
         }.onFailure { error -> eventManager.sendEvent("Logout error: ${error.message}") }
     }
@@ -90,20 +92,10 @@ class AuthRepositoryImpl @Inject constructor(
         }.onFailure { error -> eventManager.sendEvent("deleteWatchedVideo error: ${error.message}") }
     }
 
-    override suspend fun markAsViewed(dataId: String) {
-        kotlin.runCatching {
-            withContext(Dispatchers.IO) {
-                val url = dataStorePrefs.getBaseUrl().first() + MARK_AS_VIEWED_ROUTE
-                authApiService.markAsViewed(url, dataId).execute()
-            }
-        }.onFailure { error -> eventManager.sendEvent("markAsViewed error: ${error.message}") }
-    }
-
     companion object {
         private const val LOGIN_ROUTE = "/ajax/login/"
         private const val SAVE_ROUTE = "/ajax/send_save/"
         private const val DELETE_ROUTE = "/engine/ajax/cdn_saves_remove.php"
-        private const val MARK_AS_VIEWED_ROUTE = "/engine/ajax/cdn_saves_view.php"
         private const val LOGOUT_ROUTE = "/logout/"
     }
 }

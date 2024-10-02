@@ -14,6 +14,7 @@ class App: Application() {
     }
 
     private fun initAnalytics() {
+        if (BuildConfig.DEBUG) return
         val config = AppMetricaConfig.newConfigBuilder(BuildConfig.APP_METRICA_KEY).build()
         AppMetrica.activate(this, config)
     }

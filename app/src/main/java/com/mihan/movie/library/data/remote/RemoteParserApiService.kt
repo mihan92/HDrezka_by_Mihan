@@ -38,7 +38,7 @@ interface RemoteParserApiService {
         @Query("page") page: Int
     ): Call<List<VideoItemDto>>
 
-    @Headers("Authorization: ${BuildConfig.ACCESS_TOKEN}", "X-Data-Version: ${BuildConfig.VERSION_CODE}")
+    @Headers("Authorization: ${BuildConfig.ACCESS_TOKEN}")
     @GET("api/detailVideoInfo")
     fun getDetailVideoByUrl(
         @Query("url") url: String

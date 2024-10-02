@@ -1,8 +1,8 @@
 package com.mihan.movie.library.presentation.screens.settings
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,18 +12,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.tv.foundation.lazy.list.TvLazyColumn
 import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults.colors
 import androidx.tv.material3.ExperimentalTvMaterial3Api
@@ -46,6 +47,7 @@ import com.mihan.movie.library.common.models.VideoQuality
 import com.mihan.movie.library.domain.models.UserInfo
 import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
 import com.mihan.movie.library.presentation.ui.size10dp
+import com.mihan.movie.library.presentation.ui.size12sp
 import com.mihan.movie.library.presentation.ui.size14sp
 import com.mihan.movie.library.presentation.ui.size16dp
 import com.mihan.movie.library.presentation.ui.size1dp
@@ -54,6 +56,7 @@ import com.mihan.movie.library.presentation.ui.size8dp
 import com.mihan.movie.library.presentation.ui.view.AuthorizationDialog
 import com.mihan.movie.library.presentation.ui.view.ChangingSiteUrlDialog
 import com.mihan.movie.library.presentation.ui.view.PrimaryColorDropDownMenu
+import com.mihan.movie.library.presentation.ui.view.QrCodeDialog
 import com.mihan.movie.library.presentation.ui.view.RectangleButton
 import com.mihan.movie.library.presentation.ui.view.VideoCategoryDropDownMenu
 import com.mihan.movie.library.presentation.ui.view.VideoQualityDropDownMenu
@@ -81,47 +84,77 @@ fun SettingsScreen(
     val userInfo by settingsViewModel.userInfo.collectAsStateWithLifecycle()
     var showAuthorizationDialog by remember { mutableStateOf(false) }
     val coroutineScope: CoroutineScope = rememberCoroutineScope()
+    var qrCodeDialogState by rememberSaveable { mutableStateOf(false) }
+    var isQrCodeTextFocused by rememberSaveable { mutableStateOf(false) }
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
     ) {
-        Column(
+        TvLazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(vertical = size16dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            LoginMenu(
-                userInfo = userInfo,
-                isUserAuthorized = isUserAuthorized,
-                onButtonClick = { if (isUserAuthorized) settingsViewModel.logout() else showAuthorizationDialog = true }
-            )
-            VideoCategory(
-                videoCategory = videoCategory,
-                onCategoryItemClicked = settingsViewModel::videoCategoryChanged,
-                modifier = Modifier.focusRequester(focusRequester)
-            )
-            VideoQuality(
-                videoQuality = videoQuality,
-                onQualityItemClicked = settingsViewModel::videoQualityChanged
-            )
-            PrimaryColor(
-                primaryColor = primaryColor,
-                onColorItemClicked = settingsViewModel::primaryColorChanged
-            )
-            AutoUpdate(
-                isAutoUpdateEnabled = isAutoUpdateEnabled,
-                onSwitchPressed = settingsViewModel::onAutoUpdatePressed
-            )
-            AnimatedVisibility(visible = !isAutoUpdateEnabled) {
-                SiteUrl(onButtonClick = settingsViewModel::onButtonShowDialogClicked)
+            item {
+                LoginMenu(
+                    userInfo = userInfo,
+                    isUserAuthorized = isUserAuthorized,
+                    onButtonClick = {
+                        if (isUserAuthorized) settingsViewModel.logout() else showAuthorizationDialog = true
+                    }
+                )
+            }
+            item {
+                VideoCategory(
+                    videoCategory = videoCategory,
+                    onCategoryItemClicked = settingsViewModel::videoCategoryChanged,
+                    modifier = Modifier.focusRequester(focusRequester)
+                )
+            }
+            item {
+                VideoQuality(
+                    videoQuality = videoQuality,
+                    onQualityItemClicked = settingsViewModel::videoQualityChanged
+                )
+            }
+            item {
+                PrimaryColor(
+                    primaryColor = primaryColor,
+                    onColorItemClicked = settingsViewModel::primaryColorChanged
+                )
+            }
+            item {
+                AutoUpdate(
+                    isAutoUpdateEnabled = isAutoUpdateEnabled,
+                    onSwitchPressed = settingsViewModel::onAutoUpdatePressed
+                )
+            }
+            if (!isAutoUpdateEnabled) {
+                item {
+                    SiteUrl(onButtonClick = settingsViewModel::onButtonShowDialogClicked)
+                }
             }
         }
-        Text(
-            text = stringResource(id = R.string.app_version_title, BuildConfig.VERSION_NAME),
-            color = MaterialTheme.colorScheme.onBackground.copy(DESCRIPTION_TITLE_ALPHA),
-        )
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            val textColor =
+                if (isQrCodeTextFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
+            Text(
+                text = stringResource(R.string.telegram_qr_code_title),
+                fontSize = size12sp,
+                color = textColor,
+                modifier = Modifier
+                    .onFocusChanged { isQrCodeTextFocused = it.isFocused }
+                    .clickable { qrCodeDialogState = true }
+            )
+            Text(
+                text = stringResource(id = R.string.app_version_title, BuildConfig.VERSION_NAME),
+                fontSize = size12sp,
+                color = MaterialTheme.colorScheme.onBackground.copy(DESCRIPTION_TITLE_ALPHA),
+            )
+        }
     }
     AuthorizationDialog(
         showDialog = showAuthorizationDialog,
@@ -138,6 +171,10 @@ fun SettingsScreen(
         siteUrl = siteUrl,
         onButtonDismiss = settingsViewModel::onButtonDialogDismissPressed,
         onButtonConfirm = settingsViewModel::onButtonDialogConfirmPressed
+    )
+    QrCodeDialog(
+        isShow = qrCodeDialogState,
+        onDialogDismiss = { qrCodeDialogState = false }
     )
     LaunchedEffect(key1 = Unit) {
         focusRequester.requestFocus()
@@ -267,7 +304,8 @@ private fun SiteUrl(
             onClick = onButtonClick,
             modifier = modifier
                 .onFocusChanged { isFocused = it.isFocused }
-                .border(size1dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(size10dp)),
+                .border(size1dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(size10dp))
+                .clip(RoundedCornerShape(size10dp)),
             colors = colors(
                 focusedContainerColor = MaterialTheme.colorScheme.background,
                 containerColor = MaterialTheme.colorScheme.background,

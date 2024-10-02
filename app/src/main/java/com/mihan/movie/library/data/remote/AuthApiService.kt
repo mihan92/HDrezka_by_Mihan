@@ -34,10 +34,4 @@ interface AuthApiService {
         @Url url: String,
         @Query("id") dataId: String,
     ): Call<ResponseBody>
-
-    @POST
-    fun markAsViewed(
-        @Url url: String,
-        @Query("id") dataId: String,
-    ): Call<ResponseBody>
 }

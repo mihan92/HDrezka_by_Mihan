@@ -35,8 +35,7 @@
     <string name="site_url_title">Ссылка на сайт</string>
     <string name="site_url_description">Текущая ссылка на сайт. При изменении не указывайте слеш в конце ссылки</string>
     <string name="change_title">Изменить</string>
-    <string name="confirm_title">Применить</string>
-    <string name="dismiss_title">Отменить</string>
+    <string name="save_title">Сохранить</string>
     <string name="rating_imdb">IMDb: %\s</string>
     <string name="rating_kp">Кинопоиск: %\s</string>
     <string name="ratings_title">Рейтинги:</string>
@@ -75,4 +74,7 @@
     <string name="unsupported_device_description">Вы пытаетесь запустить приложение на неподдерживаемом устройстве. MovieLibrary работает только на платформах Google TV и Android TV. Установите приложение на поддерживаемое устройство, чтобы оно работало корректно. Иначе корректная работа приложения не гарантируется!</string>
     <string name="understand_title">ПОНЯТНО</string>
     <string name="error_msg_cant_process_episode">Что-то пошло не так.. Не могу обработать этот сезон или эпизод</string>
+    <string name="dear_users_title">Уважаемые пользователи!</string>
+    <string name="main_screen_placeholder_message">Данные для просмотра недоступны. Возможно, текущее зеркало доступно только авторизованным пользователям. Авторизуйтесь в настройках приложения.</string>
+    <string name="telegram_qr_code_title">Telegram канал приложения. Кликните для открытия QR кода</string>
 </resources>
