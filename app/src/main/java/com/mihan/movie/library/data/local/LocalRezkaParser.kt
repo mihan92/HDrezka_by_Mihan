@@ -6,6 +6,7 @@ import android.util.Patterns
 import com.mihan.movie.library.common.Constants
 import com.mihan.movie.library.common.DataStorePrefs
 import com.mihan.movie.library.common.extentions.logger
+import com.mihan.movie.library.common.utils.SharedPrefs
 import com.mihan.movie.library.data.models.NewSeriesModelDto
 import com.mihan.movie.library.data.models.StreamDto
 import com.mihan.movie.library.data.models.UserInfoDto
@@ -31,40 +32,43 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 @ActivityRetainedScoped
 class LocalRezkaParser @Inject constructor(
     private val dataStorePrefs: DataStorePrefs,
+    private val sharedPrefs: SharedPrefs,
 ) : CoroutineScope {
 
     override val coroutineContext: CoroutineContext = SupervisorJob() + Dispatchers.IO
 
     suspend fun getNewSeriesList(): List<NewSeriesModelDto> = withContext(Dispatchers.IO) {
-        val cookies = dataStorePrefs.getCookies().first()
-            .mapNotNull { cookieString -> Cookie.parse(getBaseUrl().toHttpUrl(), cookieString) }
+        val cookies = sharedPrefs.getCookies().mapNotNull { cookieString ->
+            Cookie.parse(getBaseUrl().toHttpUrl(), cookieString)
+        }
         val cookieMap = cookies.associate { it.name to it.value }
+
         val document = getConnection("${getBaseUrl()}/continue/").cookies(cookieMap).get()
         val notAuthorized = document.select("div.b-info__message").text()
         if (notAuthorized.isNotEmpty()) {
-            dataStorePrefs.clearCookies()
+            sharedPrefs.clearCookies()
             return@withContext emptyList()
         }
         fetchNewSeriesFromDocument(document)
     }
 
     suspend fun getRemoteHistoryList(): List<VideoHistoryModelDto> = withContext(Dispatchers.IO) {
-        val cookies = dataStorePrefs.getCookies().first()
+        val cookies = sharedPrefs.getCookies()
             .mapNotNull { cookieString -> Cookie.parse(getBaseUrl().toHttpUrl(), cookieString) }
         val cookieMap = cookies.associate { it.name to it.value }
         val document = getConnection("${getBaseUrl()}/continue/").cookies(cookieMap).get()
         val notAuthorized = document.select("div.b-info__message").text()
         if (notAuthorized.isNotEmpty()) {
-            dataStorePrefs.clearCookies()
+            sharedPrefs.clearCookies()
             return@withContext emptyList()
         }
         fetchHistoryFromDocument(document)
     }
 
     suspend fun getUserInfo(): UserInfoDto = withContext(Dispatchers.IO) {
-        val userId = dataStorePrefs.getUserId().first()
+        val userId = sharedPrefs.getUserId()
         if (userId.isEmpty()) return@withContext UserInfoDto()
-        val cookies = dataStorePrefs.getCookies().first()
+        val cookies = sharedPrefs.getCookies()
             .mapNotNull { cookieString -> Cookie.parse(getBaseUrl().toHttpUrl(), cookieString) }
         val cookieMap = cookies.associate { it.name to it.value }
         val document = getConnection("${getBaseUrl()}/user/$userId/").cookies(cookieMap).get()
@@ -191,7 +195,13 @@ class LocalRezkaParser @Inject constructor(
         data["episode"] = episode
         data["action"] = "get_stream"
         val unixTime = System.currentTimeMillis()
-        val result: Document? = getConnection("${getBaseUrl()}$GET_STREAM_POST/?t=$unixTime").data(data).post()
+        val cookies = sharedPrefs.getCookies()
+            .mapNotNull { cookieString -> Cookie.parse(getBaseUrl().toHttpUrl(), cookieString) }
+        val cookieMap = cookies.associate { it.name to it.value }
+        val result: Document? = getConnection("${getBaseUrl()}$GET_STREAM_POST/?t=$unixTime")
+            .data(data)
+            .cookies(cookieMap)
+            .post()
         if (result != null) {
             val bodyString: String = result.select("body").text()
             val jsonObject = JSONObject(bodyString)
@@ -214,7 +224,13 @@ class LocalRezkaParser @Inject constructor(
         data["translator_id"] = translatorId
         data["action"] = "get_movie"
         val unixTime = System.currentTimeMillis()
-        val result: Document? = getConnection("${getBaseUrl()}$GET_STREAM_POST/?t=$unixTime").data(data).post()
+        val cookies = sharedPrefs.getCookies()
+            .mapNotNull { cookieString -> Cookie.parse(getBaseUrl().toHttpUrl(), cookieString) }
+        val cookieMap = cookies.associate { it.name to it.value }
+        val result: Document? = getConnection("${getBaseUrl()}$GET_STREAM_POST/?t=$unixTime")
+            .data(data)
+            .cookies(cookieMap)
+            .post()
         if (result != null) {
             val bodyString: String = result.select("body").text()
             val jsonObject = JSONObject(bodyString)
@@ -278,6 +294,7 @@ class LocalRezkaParser @Inject constructor(
     private fun getConnection(filmUrl: String): Connection = Jsoup
         .connect(filmUrl)
         .ignoreContentType(true)
+        .userAgent(Constants.USER_AGENT)
         .header(APP_HEADER, REQUEST_HEADER_ENABLE_METADATA_VALUE)
         .timeout(CONNECTION_TIMEOUT)
         .followRedirects(true)

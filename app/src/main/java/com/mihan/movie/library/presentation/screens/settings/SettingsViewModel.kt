@@ -9,6 +9,7 @@ import com.mihan.movie.library.common.models.Colors
 import com.mihan.movie.library.common.models.VideoCategory
 import com.mihan.movie.library.common.models.VideoQuality
 import com.mihan.movie.library.common.utils.EventManager
+import com.mihan.movie.library.common.utils.SharedPrefs
 import com.mihan.movie.library.common.utils.whileUiSubscribed
 import com.mihan.movie.library.domain.models.UserInfo
 import com.mihan.movie.library.domain.usecases.auth.LoginUseCase
@@ -19,7 +20,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -34,11 +34,14 @@ class SettingsViewModel @Inject constructor(
     private val getUserInfoUseCase: GetUserInfoUseCase,
     private val getNewSeriesUseCase: GetNewSeriesUseCase,
     private val dataStorePrefs: DataStorePrefs,
+    private val sharedPrefs: SharedPrefs,
     private val eventManager: EventManager
 ) : ViewModel() {
 
     private val _siteDialogState = MutableStateFlow(false)
     private val _userInfo = MutableStateFlow(UserInfo())
+    private val _isUserAuthorized = MutableStateFlow(false)
+    val isUserAuthorized = _isUserAuthorized.asStateFlow()
     val siteDialogState = _siteDialogState.asStateFlow()
     val userInfo = _userInfo.asStateFlow()
 
@@ -70,15 +73,10 @@ class SettingsViewModel @Inject constructor(
         true
     )
 
-    val isUserAuthorized = dataStorePrefs.getUserAuthorizationStatus().stateIn(
-        viewModelScope,
-        whileUiSubscribed,
-        false
-    )
-
     init {
         viewModelScope.launch {
-            if (dataStorePrefs.getUserAuthorizationStatus().first()) {
+            if (sharedPrefs.getUserAuthStatus()) {
+                _isUserAuthorized.update { true }
                 getUserInfo()
             }
         }
@@ -87,32 +85,39 @@ class SettingsViewModel @Inject constructor(
     suspend fun login(loginAndPass: Pair<String, String>): Boolean {
         val isSuccess = loginUseCase(loginAndPass.first, loginAndPass.second)
         delay(500)
-        getUserInfo()
-        if (isSuccess) getNewSeries()
+        if (isSuccess) {
+            getUserInfo()
+            getNewSeries()
+        }
         return isSuccess
     }
 
     fun logout() {
         viewModelScope.launch {
             logoutUseCase()
+            dataStorePrefs.updateNewSeriesStatus(false)
+            _isUserAuthorized.update { false }
         }
     }
 
     private suspend fun getUserInfo() {
-        val isAuthorized = dataStorePrefs.getUserAuthorizationStatus().first()
+        val isAuthorized = sharedPrefs.getUserAuthStatus()
         if (!isAuthorized) return
         getUserInfoUseCase().collect { result ->
             when (result) {
                 is ApiResponse.Error -> eventManager.sendEvent(result.errorMessage)
                 is ApiResponse.Loading -> Unit
-                is ApiResponse.Success -> _userInfo.update { result.data }
+                is ApiResponse.Success -> {
+                    _isUserAuthorized.update { true }
+                    _userInfo.update { result.data }
+                }
             }
         }
     }
 
     private suspend fun getNewSeries() {
         getNewSeriesUseCase().onEach { result ->
-            when(result) {
+            when (result) {
                 is ApiResponse.Loading -> Unit
                 is ApiResponse.Error -> dataStorePrefs.updateNewSeriesStatus(false)
                 is ApiResponse.Success -> {
@@ -150,7 +155,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             if (getSiteUrl.value != url) {
                 dataStorePrefs.setBaseUrl(url)
-                dataStorePrefs.clearCookies()
+                sharedPrefs.clearCookies()
             }
         }
     }

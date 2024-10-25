@@ -8,16 +8,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.common.Constants
-import com.mihan.movie.library.common.DataStorePrefs
 import com.mihan.movie.library.common.extentions.logger
 import com.mihan.movie.library.common.utils.EventManager
+import com.mihan.movie.library.common.utils.SharedPrefs
 import com.mihan.movie.library.domain.models.FavouritesModel
 import com.mihan.movie.library.domain.models.SerialModel
 import com.mihan.movie.library.domain.models.StreamModel
 import com.mihan.movie.library.domain.models.VideoHistoryModel
 import com.mihan.movie.library.domain.models.VideoInfoModel
 import com.mihan.movie.library.domain.models.WatchedVideoModel
-import com.mihan.movie.library.domain.usecases.auth.MarkAsViewedUseCase
 import com.mihan.movie.library.domain.usecases.auth.SendWatchedVideoUseCase
 import com.mihan.movie.library.domain.usecases.favourites.AddToFavouritesUseCase
 import com.mihan.movie.library.domain.usecases.favourites.DeleteFromFavouritesUseCase
@@ -35,7 +34,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -55,9 +53,8 @@ class DetailViewModel @Inject constructor(
     private val addToFavouritesUseCase: AddToFavouritesUseCase,
     private val deleteFromFavouritesUseCase: DeleteFromFavouritesUseCase,
     private val sendWatchedVideoUseCase: SendWatchedVideoUseCase,
-    private val markAsViewedUseCase: MarkAsViewedUseCase,
     private val eventManager: EventManager,
-    private val dataStorePrefs: DataStorePrefs,
+    private val sharedPrefs: SharedPrefs,
     savedStateHandle: SavedStateHandle,
     application: Application
 ) : AndroidViewModel(application) {
@@ -260,7 +257,7 @@ class DetailViewModel @Inject constructor(
                 val watchingTime = System.currentTimeMillis()
                 val videoPageUrl = Uri.parse(navArgs.movieUrl).path
 
-                val isAuthorized = dataStorePrefs.getUserAuthorizationStatus().first()
+                val isAuthorized = sharedPrefs.getUserAuthStatus()
                 if (isAuthorized) {
                     val model = WatchedVideoModel(
                         dataId = _filmId,
@@ -269,7 +266,6 @@ class DetailViewModel @Inject constructor(
                         episode = _seasonAndEpisodeTitle.second.ifEmpty { "0" },
                     )
                     sendWatchedVideoUseCase(model)
-                    //markAsViewedUseCase(_videoHistoryModel.value?.dataId ?: Constants.EMPTY_STRING)
                     getVideoHistoryData(_filmId)
                 } else {
                     val model = VideoHistoryModel(

@@ -16,10 +16,10 @@ android {
 
     defaultConfig {
         applicationId = "com.mihan.movie.library"
-        minSdk = 28
+        minSdk = 23
         targetSdk = 34
-        versionCode = 21
-        versionName = "3.0.0"
+        versionCode = 22
+        versionName = "3.0.1"
         vectorDrawables {
             useSupportLibrary = true
         }

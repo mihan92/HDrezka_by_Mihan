@@ -4,14 +4,14 @@ import android.content.Context
 import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.common.utils.EventManagerImpl
 import com.mihan.movie.library.common.utils.VoiceRecognizer
-import com.mihan.movie.library.data.repository.AppUpdateRepositoryImpl
 import com.mihan.movie.library.data.repository.AuthRepositoryImpl
 import com.mihan.movie.library.data.repository.FavouritesRepositoryImpl
+import com.mihan.movie.library.data.repository.GsonApiRepositoryImpl
 import com.mihan.movie.library.data.repository.LocalVideoVideoHistoryRepositoryImpl
 import com.mihan.movie.library.data.repository.ParserRepositoryImpl
-import com.mihan.movie.library.domain.AppUpdateRepository
 import com.mihan.movie.library.domain.AuthRepository
 import com.mihan.movie.library.domain.FavouritesRepository
+import com.mihan.movie.library.domain.GsonApiRepository
 import com.mihan.movie.library.domain.LocalVideoHistoryRepository
 import com.mihan.movie.library.domain.ParserRepository
 import dagger.Binds
@@ -32,7 +32,7 @@ interface ActivityRetainedModule {
     fun bindsParserRepository(impl: ParserRepositoryImpl): ParserRepository
 
     @Binds
-    fun bindsAppUpdateRepository(impl: AppUpdateRepositoryImpl): AppUpdateRepository
+    fun bindsAppUpdateRepository(impl: GsonApiRepositoryImpl): GsonApiRepository
 
     @Binds
     fun bindsLocalVideoHistoryRepository(impl: LocalVideoVideoHistoryRepositoryImpl): LocalVideoHistoryRepository

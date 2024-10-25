@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -51,7 +49,7 @@ fun AuthorizationDialog(
             onDismissRequest = onDismissRequest,
             containerColor = dialogBgColor,
             confirmButton = {
-                DialogTextButton(
+                DialogButton(
                     title = stringResource(id = R.string.login_title),
                     onButtonClick = {
                         if (login.isEmpty() || password.isEmpty()) {
@@ -60,16 +58,18 @@ fun AuthorizationDialog(
                                 context.getString(R.string.empty_fields_error_message),
                                 Toast.LENGTH_SHORT
                             ).show()
-                            return@DialogTextButton
+                            return@DialogButton
                         }
                         onButtonConfirm(login to password)
-                    }
+                    },
+                    isEnabled = login.isNotEmpty() && password.isNotEmpty()
                 )
             },
             dismissButton = {
-                DialogTextButton(
-                    title = stringResource(id = R.string.dismiss_title),
-                    onButtonClick = onDismissRequest
+                DialogButton(
+                    title = stringResource(id = R.string.cancel_title),
+                    onButtonClick = onDismissRequest,
+                    isEnabled = true
                 )
             },
             text = {
@@ -135,22 +135,5 @@ fun AuthorizationDialog(
         LaunchedEffect(key1 = Unit) {
             focusRequester.requestFocus()
         }
-    }
-}
-
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Composable
-private fun DialogTextButton(
-    title: String,
-    onButtonClick: () -> Unit,
-) {
-    TextButton(
-        onClick = onButtonClick,
-        colors = ButtonDefaults.buttonColors(
-            contentColor = MaterialTheme.colorScheme.onBackground,
-            containerColor = dialogBgColor
-        )
-    ) {
-        Text(text = title)
     }
 }

@@ -8,6 +8,7 @@ import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.common.DataStorePrefs
 import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.common.utils.IDownloadManager
+import com.mihan.movie.library.common.utils.SharedPrefs
 import com.mihan.movie.library.domain.usecases.parser.GetBaseUrlUseCase
 import com.mihan.movie.library.domain.usecases.parser.GetNewSeriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,6 +29,7 @@ class SplashViewModel @Inject constructor(
     private val getNewSeriesUseCase: GetNewSeriesUseCase,
     private val eventManager: EventManager,
     private val application: Application,
+    private val sharedPrefs: SharedPrefs,
     downloadManager: IDownloadManager,
 ) : AndroidViewModel(application) {
 
@@ -37,8 +39,11 @@ class SplashViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             getBaseUrl()
-            val isUserAuthorized = dataStorePrefs.getUserAuthorizationStatus().first()
-            if (isUserAuthorized) getNewSeries()
+            val isUserAuthorized = sharedPrefs.getUserAuthStatus()
+            if (isUserAuthorized)
+                getNewSeries()
+            else
+                dataStorePrefs.updateNewSeriesStatus(false)
             downloadManager.deleteOldApk()
             _screenState.update { SplashScreenState(toNextScreen = true) }
         }
@@ -56,7 +61,8 @@ class SplashViewModel @Inject constructor(
                     val baseUrl = result.data.baseUrl
                     if (baseUrl != dataStorePrefs.getBaseUrl().first()) {
                         dataStorePrefs.setBaseUrl(baseUrl)
-                        dataStorePrefs.clearCookies()
+                        dataStorePrefs.updateNewSeriesStatus(false)
+                        sharedPrefs.clearCookies()
                         eventManager.sendEvent(application.getString(R.string.updated_url_message, baseUrl))
                     }
                 }
