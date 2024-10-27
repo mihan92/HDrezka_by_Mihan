@@ -85,7 +85,7 @@ fun AuthorizationDialog(
                         singleLine = true,
                         placeholder = {
                             Text(
-                                text = stringResource(R.string.email_title),
+                                text = stringResource(R.string.email_or_login_title),
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                             )
                         },

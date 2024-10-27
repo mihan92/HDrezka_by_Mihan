@@ -12,6 +12,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -27,6 +28,7 @@ import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.mihan.movie.library.R
+import com.mihan.movie.library.common.Constants
 import com.mihan.movie.library.domain.models.FavouritesModel
 import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
 import com.mihan.movie.library.presentation.screens.destinations.DetailVideoScreenDestination
@@ -34,6 +36,7 @@ import com.mihan.movie.library.presentation.ui.size16dp
 import com.mihan.movie.library.presentation.ui.size20sp
 import com.mihan.movie.library.presentation.ui.size8dp
 import com.mihan.movie.library.presentation.ui.view.ButtonDelete
+import com.mihan.movie.library.presentation.ui.view.ConfirmDeleteDialog
 import com.mihan.movie.library.presentation.ui.view.EmptyListPlaceholder
 import com.mihan.movie.library.presentation.ui.view.PosterView
 import com.mihan.movie.library.presentation.ui.view.RectangleButton
@@ -50,11 +53,24 @@ fun FavouritesScreen(
 ) {
     val favouritesList by favouritesViewModel.favouritesList.collectAsStateWithLifecycle()
     val baseUrl by favouritesViewModel.baseUrl.collectAsStateWithLifecycle()
+    var deleteDialogState by rememberSaveable { mutableStateOf(false) }
+    var videoId by remember { mutableStateOf(Constants.EMPTY_STRING) }
     if (favouritesList.isEmpty()) EmptyListPlaceholder(text = stringResource(id = R.string.favourites_screen_placeholder))
     Content(
         favouritesList = favouritesList,
         onButtonWatchClicked = { navigator.navigate(DetailVideoScreenDestination("$baseUrl${it.videoPageUrl}")) },
-        onItemDeleteClicked = favouritesViewModel::onButtonDeletePressed
+        onItemDeleteClicked = { id ->
+            videoId = id
+            deleteDialogState = true
+        }
+    )
+    ConfirmDeleteDialog(
+        showDialogState = deleteDialogState,
+        onButtonYesPressed = {
+            deleteDialogState = false
+            if (videoId.isNotEmpty()) favouritesViewModel.onButtonDeletePressed(videoId)
+        },
+        onButtonNoPressed = { deleteDialogState = false },
     )
 }
 
@@ -82,8 +98,11 @@ private fun Content(
         }
     }
     LaunchedEffect(key1 = favouritesList) {
-        if (favouritesList.isNotEmpty())
-            focusRequester.requestFocus()
+        if (favouritesList.isNotEmpty()) {
+            runCatching {
+                focusRequester.requestFocus()
+            }
+        }
     }
 }
 

@@ -187,7 +187,9 @@ private fun Content(
                         )
                     }
                     LaunchedEffect(Unit) {
-                        focusRequester.requestFocus()
+                        runCatching {
+                            focusRequester.requestFocus()
+                        }
                     }
                 }
             } else if (screenState.listOfVideo != null && screenState.listOfVideo.isEmpty())

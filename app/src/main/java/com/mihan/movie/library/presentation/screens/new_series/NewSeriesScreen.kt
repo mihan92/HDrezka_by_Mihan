@@ -97,8 +97,11 @@ private fun Content(
         }
     }
     LaunchedEffect(key1 = seriesList) {
-        if (seriesList.isNotEmpty())
-            focusRequester.requestFocus()
+        if (seriesList.isNotEmpty()) {
+            runCatching {
+                focusRequester.requestFocus()
+            }
+        }
     }
 }
 

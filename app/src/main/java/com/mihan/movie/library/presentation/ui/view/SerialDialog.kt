@@ -295,7 +295,10 @@ private fun DialogText(
             .focusable()
     )
     LaunchedEffect(key1 = Unit) {
-        if (selected)
-            focusRequester.requestFocus()
+        if (selected) {
+            runCatching {
+                focusRequester.requestFocus()
+            }
+        }
     }
 }

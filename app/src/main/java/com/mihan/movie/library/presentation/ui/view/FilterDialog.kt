@@ -166,7 +166,7 @@ fun FilterDialog(
                         modifier = modifier.padding(top = size16dp, bottom = size8dp)
                     )
                     TvLazyRow {
-                        items(movieCollections) {collectionItem ->
+                        items(movieCollections) { collectionItem ->
                             CollectionItem(
                                 imageResId = collectionItem.iconResId,
                                 onItemClick = { onCollectionItemClick(selectedCategory, collectionItem) }
@@ -185,7 +185,9 @@ fun FilterDialog(
             categoryListState.scrollToItem(categories.indexOf(selectedCategory))
             genreListState.scrollToItem(genres.indexOf(selectedGenre))
             moviePeriodListState.scrollToItem(moviePeriodList.indexOf(selectedMoviePeriod))
-            categoryFocusRequester.requestFocus()
+            runCatching {
+                categoryFocusRequester.requestFocus()
+            }
         }
     }
 }

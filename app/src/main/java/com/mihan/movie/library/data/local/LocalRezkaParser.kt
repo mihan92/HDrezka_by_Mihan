@@ -46,7 +46,6 @@ class LocalRezkaParser @Inject constructor(
         val document = getConnection("${getBaseUrl()}/continue/").cookies(cookieMap).get()
         val notAuthorized = document.select("div.b-info__message").text()
         if (notAuthorized.isNotEmpty()) {
-            sharedPrefs.clearCookies()
             return@withContext emptyList()
         }
         fetchNewSeriesFromDocument(document)
@@ -59,7 +58,6 @@ class LocalRezkaParser @Inject constructor(
         val document = getConnection("${getBaseUrl()}/continue/").cookies(cookieMap).get()
         val notAuthorized = document.select("div.b-info__message").text()
         if (notAuthorized.isNotEmpty()) {
-            sharedPrefs.clearCookies()
             return@withContext emptyList()
         }
         fetchHistoryFromDocument(document)

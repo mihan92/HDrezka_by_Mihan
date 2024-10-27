@@ -104,6 +104,8 @@ private fun Content(
         }
     }
     LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+        runCatching {
+            focusRequester.requestFocus()
+        }
     }
 }

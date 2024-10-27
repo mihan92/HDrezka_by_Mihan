@@ -34,11 +34,14 @@ class CookieManager @Inject constructor(
 
     override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
         if (!url.encodedPath.contains(ROUTE_FOR_COOKIES)) return // Забираем куки только со страницы авторизации
-        val userId = extractDleUserIdFromCookies(cookies)
-        //val cookieSet = cookies.filterNot { it.value == DELETED_COOKIES }.map { cookie -> cookie.toString() }.toSet()
-        val cookieSet = cookies.takeLast(3).map { cookie -> cookie.toString() }.toSet()
+        val reversedCookies = cookies.reversed()
+        val phpId = reversedCookies.find { it.name == PHP_ID }?.let { "${it.name}=${it.value}" }
+        val userId = reversedCookies.find { it.name == USER_ID }?.let { "${it.name}=${it.value}" }
+        val pass = reversedCookies.find { it.name == PASS }?.let { "${it.name}=${it.value}" }
+        val userIdValue = extractDleUserIdFromCookies(cookies)
+        val cookieSet = setOfNotNull(phpId, userId, pass)
         sharedPrefs.saveCookies(cookieSet)
-        if (userId.isNotEmpty()) sharedPrefs.saveUserId(userId)
+        if (userIdValue.isNotEmpty()) sharedPrefs.saveUserId(userIdValue)
     }
 
 
@@ -56,5 +59,7 @@ class CookieManager @Inject constructor(
         private const val ROUTE_FOR_COOKIES = "login"
         private const val DELETED_COOKIES = "deleted"
         private const val USER_ID = "dle_user_id"
+        private const val PASS = "dle_password"
+        private const val PHP_ID = "PHPSESSID"
     }
 }

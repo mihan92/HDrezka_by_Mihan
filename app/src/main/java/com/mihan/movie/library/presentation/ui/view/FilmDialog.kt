@@ -83,7 +83,9 @@ fun FilmDialog(
             }
         }
         LaunchedEffect(key1 = Unit) {
-            focusRequester.requestFocus()
+            runCatching {
+                focusRequester.requestFocus()
+            }
         }
     }
 }

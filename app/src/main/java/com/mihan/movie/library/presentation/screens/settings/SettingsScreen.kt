@@ -123,12 +123,12 @@ fun SettingsScreen(
                     onColorItemClicked = settingsViewModel::primaryColorChanged
                 )
             }
-            item {
-                AutoUpdate(
-                    isAutoUpdateEnabled = isAutoUpdateEnabled,
-                    onSwitchPressed = settingsViewModel::onAutoUpdatePressed
-                )
-            }
+//            item {
+//                AutoUpdate(
+//                    isAutoUpdateEnabled = isAutoUpdateEnabled,
+//                    onSwitchPressed = settingsViewModel::onAutoUpdatePressed
+//                )
+//            }
             if (!isAutoUpdateEnabled) {
                 item {
                     SiteUrl(onButtonClick = settingsViewModel::onButtonShowDialogClicked)
@@ -177,7 +177,9 @@ fun SettingsScreen(
         onDialogDismiss = { qrCodeDialogState = false }
     )
     LaunchedEffect(key1 = Unit) {
-        focusRequester.requestFocus()
+        runCatching {
+            focusRequester.requestFocus()
+        }
     }
 }
 

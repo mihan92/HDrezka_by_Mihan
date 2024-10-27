@@ -14,6 +14,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +39,7 @@ import com.mihan.movie.library.presentation.ui.size16dp
 import com.mihan.movie.library.presentation.ui.size20sp
 import com.mihan.movie.library.presentation.ui.size8dp
 import com.mihan.movie.library.presentation.ui.view.ButtonDelete
+import com.mihan.movie.library.presentation.ui.view.ConfirmDeleteDialog
 import com.mihan.movie.library.presentation.ui.view.EmptyListPlaceholder
 import com.mihan.movie.library.presentation.ui.view.PosterView
 import com.mihan.movie.library.presentation.ui.view.RectangleButton
@@ -55,6 +57,8 @@ fun HistoryScreen(
 ) {
     val historyScreenState by historyViewModel.historyScreenState.collectAsStateWithLifecycle()
     val baseUrl by historyViewModel.baseUrl.collectAsStateWithLifecycle()
+    var deleteDialogState by rememberSaveable { mutableStateOf(false) }
+    var historyModel by remember { mutableStateOf<VideoHistoryModel?>(null) }
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -64,11 +68,21 @@ fun HistoryScreen(
         Content(
             historyList = historyScreenState.data,
             onButtonWatchClicked = { navigator.navigate(DetailVideoScreenDestination("$baseUrl${it.videoPageUrl}")) },
-            onItemDeleteClicked = historyViewModel::onButtonDeleteClicked
+            onItemDeleteClicked = { model ->
+                historyModel = model
+                deleteDialogState = true
+            }
         )
         if (historyScreenState.isLoading) CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
     }
-
+    ConfirmDeleteDialog(
+        showDialogState = deleteDialogState,
+        onButtonYesPressed = {
+            deleteDialogState = false
+            historyModel?.let { historyViewModel.onButtonDeleteClicked(it) }
+        },
+        onButtonNoPressed = { deleteDialogState = false },
+    )
     LaunchedEffect(key1 = Unit) {
         historyViewModel.getHistoryList()
     }
@@ -98,8 +112,11 @@ private fun Content(
         }
     }
     LaunchedEffect(key1 = historyList) {
-        if (historyList.isNotEmpty())
-            focusRequester.requestFocus()
+        if (historyList.isNotEmpty()) {
+            runCatching {
+                focusRequester.requestFocus()
+            }
+        }
     }
 }
 
