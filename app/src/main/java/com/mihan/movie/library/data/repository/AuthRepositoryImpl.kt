@@ -1,5 +1,6 @@
 package com.mihan.movie.library.data.repository
 
+import com.mihan.movie.library.common.ApiResponse
 import com.mihan.movie.library.common.DataStorePrefs
 import com.mihan.movie.library.common.extentions.logger
 import com.mihan.movie.library.common.utils.EventManager
@@ -24,7 +25,7 @@ class AuthRepositoryImpl @Inject constructor(
     private val eventManager: EventManager
 ) : AuthRepository {
 
-    override suspend fun login(login: String, password: String) = withContext(Dispatchers.IO) {
+    override suspend fun login(login: String, password: String): ApiResponse<Boolean> = withContext(Dispatchers.IO) {
         runCatching {
             val url = dataStorePrefs.getBaseUrl().first() + LOGIN_ROUTE
             authApiService.login(url, login, password, 0).execute()
@@ -35,25 +36,28 @@ class AuthRepositoryImpl @Inject constructor(
                     when {
                         loginResponse.success -> {
                             logger("Login successful!")
-                            return@withContext true
+                            ApiResponse.Success(true)
                         }
 
                         loginResponse.message != null -> {
-                            val messageWithoutHtml = Jsoup.clean(loginResponse.message.toString(), Safelist.none())
-                            eventManager.sendEvent(messageWithoutHtml)
-                            return@withContext false
+                            try {
+                                val messageWithoutHtml = Jsoup.clean(loginResponse.message.toString(), Safelist.none())
+                                ApiResponse.Error(messageWithoutHtml)
+                            } catch (e: Exception) {
+                                ApiResponse.Error(e.message.toString())
+                            }
                         }
 
-                        else -> { return@withContext false}
+                        else -> {
+                            ApiResponse.Success(false)
+                        }
                     }
                 } else {
-                    eventManager.sendEvent("Login response error: ${response.errorBody()?.string()}")
-                    return@withContext false
+                    ApiResponse.Error("Login response error: ${response.errorBody()?.string()}")
                 }
             },
             { error ->
-                eventManager.sendEvent("Login error: ${error.message}")
-                return@withContext false
+                ApiResponse.Error("Login error: ${error.message}")
             }
         )
     }

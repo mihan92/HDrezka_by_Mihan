@@ -112,7 +112,7 @@ class DataStorePrefs @Inject constructor(@ApplicationContext context: Context) {
         private val VIDEO_QUALITY_KEY = stringPreferencesKey("video_quality")
         private val BASE_URL_KEY = stringPreferencesKey("base_url")
         private val PRIMARY_COLOR_KEY = stringPreferencesKey("primary_color")
-        private val AUTO_UPDATE_KEY = booleanPreferencesKey("auto_update")
+        private val AUTO_UPDATE_KEY = booleanPreferencesKey("auto_update_key_new")
         private val NEW_SERIES_STATUS_KEY = booleanPreferencesKey("new_series_status")
         private val DEFAULT_VIDEO_CATEGORY = VideoCategory.All
         private val DEFAULT_VIDEO_QUALITY = VideoQuality.Quality1080

@@ -18,7 +18,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -61,8 +60,6 @@ import com.mihan.movie.library.presentation.ui.view.RectangleButton
 import com.mihan.movie.library.presentation.ui.view.VideoCategoryDropDownMenu
 import com.mihan.movie.library.presentation.ui.view.VideoQualityDropDownMenu
 import com.ramcosta.composedestinations.annotation.Destination
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 private const val DESCRIPTION_TITLE_ALPHA = 0.6f
 private const val SELECTED_BACKGROUND_ALPHA = 0.1f
@@ -81,9 +78,9 @@ fun SettingsScreen(
     val primaryColor by settingsViewModel.getPrimaryColor.collectAsStateWithLifecycle()
     val isAutoUpdateEnabled by settingsViewModel.autoUpdate.collectAsStateWithLifecycle()
     val isUserAuthorized by settingsViewModel.isUserAuthorized.collectAsStateWithLifecycle()
+    val settingsScreenState by settingsViewModel.settingsScreenState.collectAsStateWithLifecycle()
     val userInfo by settingsViewModel.userInfo.collectAsStateWithLifecycle()
     var showAuthorizationDialog by remember { mutableStateOf(false) }
-    val coroutineScope: CoroutineScope = rememberCoroutineScope()
     var qrCodeDialogState by rememberSaveable { mutableStateOf(false) }
     var isQrCodeTextFocused by rememberSaveable { mutableStateOf(false) }
     Box(
@@ -158,11 +155,9 @@ fun SettingsScreen(
     }
     AuthorizationDialog(
         showDialog = showAuthorizationDialog,
+        settingsScreenState = settingsScreenState,
         onButtonConfirm = { loginAndPass ->
-            coroutineScope.launch {
-                val isLoginSuccess = settingsViewModel.login(loginAndPass)
-                if (isLoginSuccess) showAuthorizationDialog = false
-            }
+            settingsViewModel.login(loginAndPass)
         },
         onDismissRequest = { showAuthorizationDialog = false }
     )

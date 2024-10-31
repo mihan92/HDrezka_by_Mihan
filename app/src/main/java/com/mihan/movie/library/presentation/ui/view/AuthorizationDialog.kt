@@ -28,6 +28,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import com.mihan.movie.library.R
+import com.mihan.movie.library.presentation.screens.settings.SettingsScreenState
 import com.mihan.movie.library.presentation.ui.size18sp
 import com.mihan.movie.library.presentation.ui.theme.dialogBgColor
 
@@ -35,6 +36,7 @@ import com.mihan.movie.library.presentation.ui.theme.dialogBgColor
 @Composable
 fun AuthorizationDialog(
     showDialog: Boolean,
+    settingsScreenState: SettingsScreenState,
     onButtonConfirm: (Pair<String, String>) -> Unit,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier
@@ -44,12 +46,13 @@ fun AuthorizationDialog(
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
 
+    if (settingsScreenState.isLoginSuccess) onDismissRequest()
     if (showDialog) {
         AlertDialog(
             onDismissRequest = onDismissRequest,
             containerColor = dialogBgColor,
             confirmButton = {
-                DialogButton(
+                DialogButtonWithLoadingIndicator(
                     title = stringResource(id = R.string.login_title),
                     onButtonClick = {
                         if (login.isEmpty() || password.isEmpty()) {
@@ -58,11 +61,12 @@ fun AuthorizationDialog(
                                 context.getString(R.string.empty_fields_error_message),
                                 Toast.LENGTH_SHORT
                             ).show()
-                            return@DialogButton
+                            return@DialogButtonWithLoadingIndicator
                         }
                         onButtonConfirm(login to password)
                     },
-                    isEnabled = login.isNotEmpty() && password.isNotEmpty()
+                    isEnabled = login.isNotEmpty() && password.isNotEmpty() && !settingsScreenState.loginLoadingState,
+                    isLoading = settingsScreenState.loginLoadingState
                 )
             },
             dismissButton = {
