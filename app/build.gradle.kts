@@ -5,21 +5,21 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
-    id("com.google.devtools.ksp") version "1.9.20-1.0.14"
-    kotlin("plugin.serialization") version "1.9.20"
+    id("com.google.devtools.ksp") version "1.9.21-1.0.16"
+    kotlin("plugin.serialization") version "1.9.21"
     kotlin("kapt")
 }
 
 android {
     namespace = "com.mihan.movie.library"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.mihan.movie.library"
         minSdk = 23
-        targetSdk = 34
-        versionCode = 24
-        versionName = "3.0.3"
+        targetSdk = 35
+        versionCode = 25
+        versionName = "3.0.4"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -39,18 +39,18 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
         buildConfig = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.5"
+        kotlinCompilerExtensionVersion = "1.5.7"
     }
     packaging {
         resources {
@@ -71,20 +71,20 @@ dependencies {
     val coilVersion = "2.5.0"
     val dataStoreVersion = "1.1.1"
     val permissionsVersion = "0.25.1"
-    val composeBomVersion = "2024.08.00"
+    val composeBomVersion = "2024.11.00"
     val roomVersion = "2.6.1"
 
-    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation(platform("androidx.compose:compose-bom:$composeBomVersion"))
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.tv:tv-foundation:1.0.0-alpha07") //пока не трогать, много чего экспериментального
-    implementation("androidx.tv:tv-material:1.0.0-alpha07") //пока не трогать, много чего экспериментального
-    implementation("androidx.media3:media3-extractor:1.4.0")
-    implementation("androidx.compose.material3:material3:1.2.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
-    implementation("androidx.activity:activity-compose:1.9.1")
+    implementation("androidx.tv:tv-foundation:1.0.0-alpha11")
+    implementation("androidx.tv:tv-material:1.0.0")
+    implementation("androidx.media3:media3-extractor:1.4.1")
+    implementation("androidx.compose.material3:material3:1.3.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+    implementation("androidx.activity:activity-compose:1.9.3")
 
     //Analytics
     implementation("io.appmetrica.analytics:analytics:7.0.0")

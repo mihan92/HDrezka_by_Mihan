@@ -2,10 +2,13 @@ package com.mihan.movie.library.data.models
 
 import com.mihan.movie.library.common.Constants
 import com.mihan.movie.library.domain.models.SerialModel
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class SerialModelDto(
-    val season: String = Constants.EMPTY_STRING,
-    val episodes: List<String> = emptyList()
+    @SerialName("season") val season: String = Constants.EMPTY_STRING,
+    @SerialName("episodes") val episodes: List<String> = emptyList()
 )
 
 fun SerialModelDto.toSerialModel() = SerialModel(

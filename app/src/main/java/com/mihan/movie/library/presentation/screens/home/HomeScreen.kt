@@ -13,6 +13,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,11 +34,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.tv.foundation.lazy.grid.TvGridCells
-import androidx.tv.foundation.lazy.grid.TvLazyVerticalGrid
-import androidx.tv.foundation.lazy.grid.items
-import androidx.tv.foundation.lazy.grid.rememberTvLazyGridState
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.mihan.movie.library.R
@@ -54,7 +53,6 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 private const val numberOfGridCells = 6
 private const val PLACEHOLDER_MESSAGE_WIDTH = .8f
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Destination(style = AnimatedScreenTransitions::class)
 @Composable
 fun HomeScreen(
@@ -133,8 +131,10 @@ fun HomeScreen(
         viewModel.getListVideo()
     }
     LaunchedEffect(Unit) {
-        if (!isRunningOnTv(context))
+        if (!isRunningOnTv(context) && !viewModel.isUnsupportedDeviceMessageShowed) {
             showDialogUnsupportedDevice = true
+            viewModel.updateUnsupportedDeviceMessageStatus(true)
+        }
     }
 }
 
@@ -157,10 +157,10 @@ private fun Content(
         contentAlignment = Alignment.BottomCenter,
         modifier = modifier.padding(bottom = size10dp)
     ) {
-        val state = rememberTvLazyGridState()
-        TvLazyVerticalGrid(
+        val state = rememberLazyGridState()
+        LazyVerticalGrid(
             state = state,
-            columns = TvGridCells.Fixed(numberOfGridCells),
+            columns = GridCells.Fixed(numberOfGridCells),
             modifier = modifier
                 .fillMaxSize()
                 .focusRequester(focusRequester)

@@ -6,9 +6,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -26,7 +28,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.tv.material3.DrawerValue
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.ModalNavigationDrawer
 import androidx.tv.material3.Surface
@@ -46,6 +47,8 @@ import com.mihan.movie.library.common.utils.SharedPrefs
 import com.mihan.movie.library.domain.usecases.gson_repository.CheckNotificationMessageUseCase
 import com.mihan.movie.library.presentation.navigation.Screens
 import com.mihan.movie.library.presentation.screens.NavGraphs
+import com.mihan.movie.library.presentation.ui.size50dp
+import com.mihan.movie.library.presentation.ui.sizeEmpty
 import com.mihan.movie.library.presentation.ui.theme.MovieLibraryTheme
 import com.mihan.movie.library.presentation.ui.view.DrawerContent
 import com.mihan.movie.library.presentation.ui.view.InformationDialog
@@ -78,7 +81,6 @@ class MainActivity : ComponentActivity() {
     @Inject
     internal lateinit var checkNotificationMessageUseCase: CheckNotificationMessageUseCase
 
-    @OptIn(ExperimentalTvMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         appUpdatesChecker.checkUpdates()
@@ -102,6 +104,11 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     shape = RectangleShape
                 ) {
+                    val contentStartPadding by animateDpAsState(
+                        targetValue = if (currentDestination in screensWithDrawer) size50dp else sizeEmpty,
+                        animationSpec = tween(),
+                        label = "dpAnimation"
+                    )
                     ModalNavigationDrawer(
                         drawerState = drawerState,
                         drawerContent = {
@@ -120,7 +127,8 @@ class MainActivity : ComponentActivity() {
                     ) {
                         DestinationsNavHost(
                             navGraph = NavGraphs.root,
-                            navController = navController
+                            navController = navController,
+                            modifier = Modifier.padding(start = contentStartPadding)
                         )
                     }
                 }
