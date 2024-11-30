@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,7 +22,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.IconButton
 import androidx.tv.material3.MaterialTheme
 import com.mihan.movie.library.R
@@ -31,7 +30,6 @@ import com.mihan.movie.library.presentation.ui.size40dp
 
 private const val FULL_LIST_SIZE = 36
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun PageFooter(
     currentPage: Int,
@@ -55,7 +53,7 @@ fun PageFooter(
             modifier = modifier.onFocusChanged { focusedArrowBackColor = if (it.isFocused) Color.Black else Color.White }
         ) {
             Icon(
-                imageVector = Icons.Default.ArrowBack,
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 tint = focusedArrowBackColor,
                 contentDescription = null
             )
@@ -72,7 +70,7 @@ fun PageFooter(
             modifier = modifier.onFocusChanged { focusedArrowNextColor = if (it.isFocused) Color.Black else Color.White }
         ) {
             Icon(
-                imageVector = Icons.Default.ArrowForward,
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 tint = focusedArrowNextColor,
                 contentDescription = null
             )

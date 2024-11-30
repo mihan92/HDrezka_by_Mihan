@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,10 +31,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.tv.foundation.lazy.list.TvLazyColumn
 import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults.colors
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Switch
 import androidx.tv.material3.SwitchDefaults
@@ -44,7 +43,7 @@ import com.mihan.movie.library.common.models.Colors
 import com.mihan.movie.library.common.models.VideoCategory
 import com.mihan.movie.library.common.models.VideoQuality
 import com.mihan.movie.library.domain.models.UserInfo
-import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
+import com.mihan.movie.library.presentation.navigation.AppNavGraph
 import com.mihan.movie.library.presentation.ui.size10dp
 import com.mihan.movie.library.presentation.ui.size12sp
 import com.mihan.movie.library.presentation.ui.size14sp
@@ -64,8 +63,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 private const val DESCRIPTION_TITLE_ALPHA = 0.6f
 private const val SELECTED_BACKGROUND_ALPHA = 0.1f
 
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Destination(style = AnimatedScreenTransitions::class)
+@Destination<AppNavGraph>
 @Composable
 fun SettingsScreen(
     settingsViewModel: SettingsViewModel = hiltViewModel()
@@ -87,7 +85,7 @@ fun SettingsScreen(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
     ) {
-        TvLazyColumn(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(vertical = size16dp)
@@ -178,7 +176,6 @@ fun SettingsScreen(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun LoginMenu(
     userInfo: UserInfo,
@@ -215,7 +212,6 @@ private fun LoginMenu(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun VideoCategory(
     videoCategory: VideoCategory,
@@ -245,7 +241,6 @@ private fun VideoCategory(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun VideoQuality(
     videoQuality: VideoQuality,
@@ -276,7 +271,6 @@ private fun VideoQuality(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun SiteUrl(
     onButtonClick: () -> Unit,
@@ -315,7 +309,6 @@ private fun SiteUrl(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun PrimaryColor(
     primaryColor: Colors,
@@ -345,7 +338,6 @@ private fun PrimaryColor(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun AutoUpdate(
     isAutoUpdateEnabled: Boolean,
@@ -380,7 +372,6 @@ private fun AutoUpdate(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun TitleWithDescription(
     title: String,

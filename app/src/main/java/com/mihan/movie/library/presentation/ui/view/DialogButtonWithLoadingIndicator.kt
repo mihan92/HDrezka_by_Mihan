@@ -11,12 +11,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import com.mihan.movie.library.presentation.ui.size10dp
 import com.mihan.movie.library.presentation.ui.theme.dialogBgColor
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun DialogButtonWithLoadingIndicator(
     title: String,

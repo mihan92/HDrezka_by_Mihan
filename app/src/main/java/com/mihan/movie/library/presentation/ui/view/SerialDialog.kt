@@ -13,6 +13,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
@@ -41,11 +45,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.tv.foundation.lazy.list.TvLazyColumn
-import androidx.tv.foundation.lazy.list.TvLazyListScope
-import androidx.tv.foundation.lazy.list.items
-import androidx.tv.foundation.lazy.list.rememberTvLazyListState
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import com.mihan.movie.library.R
 import com.mihan.movie.library.domain.models.SerialModel
@@ -99,7 +98,6 @@ fun SerialDialog(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun ExpandableTranslationList(
     translations: List<String>,
@@ -133,7 +131,7 @@ private fun ExpandableTranslationList(
                 .clickable { isExpanded = !isExpanded }
         )
         if (isExpanded) {
-            TvLazyColumn {
+            LazyColumn {
                 items(translations) { translateItem ->
                     DialogText(
                         title = translateItem,
@@ -170,8 +168,8 @@ private fun ExpandableSeasonList(
         val activeEpisodeIndex = videoHistoryModel?.episode?.toInt() ?: 0
         val activeSeasonIndex = videoHistoryModel?.season?.toInt() ?: 0
         val initialIndex = if (activeEpisodeIndex > 5) activeEpisodeIndex else activeSeasonIndex
-        val state = rememberTvLazyListState(initialFirstVisibleItemIndex = initialIndex)
-        TvLazyColumn(
+        val state = rememberLazyListState(initialFirstVisibleItemIndex = initialIndex)
+        LazyColumn(
             state = state,
             content = {
                 sections.onEachIndexed { index, value ->
@@ -217,7 +215,7 @@ private fun SectionHeader(
     }
 }
 
-private fun TvLazyListScope.section(
+private fun LazyListScope.section(
     header: String,
     listData: List<String>,
     isActiveSeason: Boolean,
@@ -247,7 +245,6 @@ private fun TvLazyListScope.section(
 }
 
 @Composable
-@OptIn(ExperimentalTvMaterial3Api::class)
 private fun ExpandableIcon(
     isExpanded: Boolean,
     modifier: Modifier = Modifier
@@ -261,7 +258,6 @@ private fun ExpandableIcon(
     )
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun DialogText(
     title: String,
@@ -277,7 +273,6 @@ private fun DialogText(
     )
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun DialogText(
     title: String,

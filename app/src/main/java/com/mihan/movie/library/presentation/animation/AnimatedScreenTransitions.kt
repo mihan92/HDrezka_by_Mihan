@@ -9,22 +9,20 @@ import androidx.compose.animation.fadeOut
 import androidx.navigation.NavBackStackEntry
 import com.ramcosta.composedestinations.spec.DestinationStyle
 
-private const val TWEEN_DURATION_IN_MILLIS = 1000
 
-object AnimatedScreenTransitions : DestinationStyle.Animated {
-    override fun AnimatedContentTransitionScope<NavBackStackEntry>.enterTransition(): EnterTransition {
-        return fadeIn(TweenSpec(delay = TWEEN_DURATION_IN_MILLIS))
-    }
+object AnimatedScreenTransitions : DestinationStyle.Animated() {
 
-    override fun AnimatedContentTransitionScope<NavBackStackEntry>.exitTransition(): ExitTransition {
-        return fadeOut(TweenSpec())
-    }
+    const val TWEEN_DURATION = 800
 
-    override fun AnimatedContentTransitionScope<NavBackStackEntry>.popEnterTransition(): EnterTransition {
-        return fadeIn(TweenSpec(delay = TWEEN_DURATION_IN_MILLIS))
-    }
+    override val enterTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?) =
+        { fadeIn(TweenSpec(delay = TWEEN_DURATION)) }
 
-    override fun AnimatedContentTransitionScope<NavBackStackEntry>.popExitTransition(): ExitTransition {
-        return fadeOut(TweenSpec())
-    }
+    override val exitTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?) =
+        { fadeOut(TweenSpec()) }
+
+    override val popEnterTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?) =
+        { fadeIn(TweenSpec(delay = TWEEN_DURATION)) }
+
+    override val popExitTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?) =
+        { fadeOut(TweenSpec()) }
 }

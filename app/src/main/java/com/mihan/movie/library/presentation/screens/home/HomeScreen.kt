@@ -38,8 +38,7 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.mihan.movie.library.R
 import com.mihan.movie.library.domain.models.VideoItemModel
-import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
-import com.mihan.movie.library.presentation.screens.destinations.DetailVideoScreenDestination
+import com.mihan.movie.library.presentation.navigation.AppNavGraph
 import com.mihan.movie.library.presentation.ui.size10dp
 import com.mihan.movie.library.presentation.ui.view.FilterDialog
 import com.mihan.movie.library.presentation.ui.view.InformationDialog
@@ -48,12 +47,13 @@ import com.mihan.movie.library.presentation.ui.view.PageFooter
 import com.mihan.movie.library.presentation.ui.view.TopAppBar
 import com.mihan.movie.library.presentation.ui.view.TopBarItems
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.generated.destinations.DetailVideoScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
 private const val numberOfGridCells = 6
 private const val PLACEHOLDER_MESSAGE_WIDTH = .8f
 
-@Destination(style = AnimatedScreenTransitions::class)
+@Destination<AppNavGraph>
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
@@ -94,12 +94,13 @@ fun HomeScreen(
                     previousPageClick = { viewModel.onPageChanged(--page) },
                     nextPageClick = { viewModel.onPageChanged(++page) }
                 )
-            } else
+            } else if (!viewModel.isUserAuthorized) {
                 Text(
                     text = stringResource(R.string.main_screen_placeholder_message),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth(PLACEHOLDER_MESSAGE_WIDTH)
                 )
+            }
             FilterDialog(
                 categoryFilter = categoryFilter,
                 genreFilter = genreFilter,

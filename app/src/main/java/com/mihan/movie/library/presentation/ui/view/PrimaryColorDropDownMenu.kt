@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpOffset
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import com.mihan.movie.library.common.models.Colors
 import com.mihan.movie.library.presentation.ui.size100dp
@@ -26,7 +25,6 @@ import com.mihan.movie.library.presentation.ui.size16dp
 import com.mihan.movie.library.presentation.ui.size20dp
 import com.mihan.movie.library.presentation.ui.sizeEmpty
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun PrimaryColorDropDownMenu(
     primaryColor: Colors,

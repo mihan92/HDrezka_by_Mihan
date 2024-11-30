@@ -60,6 +60,7 @@ class HomeViewModel @Inject constructor(
         VideoCategory.All
     )
     val isUnsupportedDeviceMessageShowed = sharedPrefs.isUnsupportedDeviceMessageShowed()
+    val isUserAuthorized = sharedPrefs.getUserAuthStatus()
 
     suspend fun getListVideo() {
         getListVideoUseCase.invoke(_topBarState.value, videoCategoryState.first(), _currentDefaultListPage.value)

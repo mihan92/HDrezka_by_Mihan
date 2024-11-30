@@ -26,12 +26,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.mihan.movie.library.R
 import com.mihan.movie.library.domain.models.ChangelogModel
-import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
+import com.mihan.movie.library.presentation.navigation.AppNavGraph
 import com.mihan.movie.library.presentation.ui.size18sp
 import com.mihan.movie.library.presentation.ui.size20dp
 import com.mihan.movie.library.presentation.ui.size28dp
@@ -41,7 +40,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 
 private const val PROGRESS_BACKGROUND_ALPHA = 0.2f
 
-@Destination(style = AnimatedScreenTransitions::class)
+@Destination<AppNavGraph>
 @Composable
 fun AppUpdatesScreen(
     appUpdatesViewModel: AppUpdatesViewModel = hiltViewModel()
@@ -65,7 +64,6 @@ fun AppUpdatesScreen(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun Content(
     changelogModel: ChangelogModel?,
@@ -108,7 +106,6 @@ private fun Content(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun DownloadingProgress(
     downloadingProgress: Float,

@@ -1,7 +1,6 @@
 package com.mihan.movie.library.presentation.ui.view
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -30,7 +29,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import coil.compose.SubcomposeAsyncImage
 import com.mihan.movie.library.R
@@ -42,7 +40,6 @@ import com.mihan.movie.library.presentation.ui.size4dp
 import com.mihan.movie.library.presentation.ui.size6dp
 import com.mihan.movie.library.presentation.ui.size8dp
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun MovieItem(
     title: String,
@@ -98,7 +95,6 @@ fun MovieItem(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun VideoTitle(
     title: String,
@@ -128,8 +124,6 @@ private fun VideoTitle(
     }
 }
 
-
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun Category(
     filmCategory: String,
@@ -151,7 +145,6 @@ private fun Category(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun LoadingIndicator(
     modifier: Modifier = Modifier

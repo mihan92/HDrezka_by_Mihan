@@ -28,7 +28,7 @@ import com.mihan.movie.library.domain.usecases.parser.GetSeasonsByTranslatorIdUs
 import com.mihan.movie.library.domain.usecases.parser.GetStreamsBySeasonIdUseCase
 import com.mihan.movie.library.domain.usecases.parser.GetStreamsByTranslatorIdUseCase
 import com.mihan.movie.library.domain.usecases.parser.GetTranslationsByUrlUseCase
-import com.mihan.movie.library.presentation.screens.navArgs
+import com.ramcosta.composedestinations.generated.navArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -88,6 +88,7 @@ class DetailViewModel @Inject constructor(
 
     fun onButtonWatchClicked() {
         viewModelScope.launch {
+            getVideoHistoryData(_filmId)
             getTranslationsByUrlUseCase(navArgs.movieUrl)
                 .collect { result ->
                     handleApiResponse(result) { data ->
@@ -156,7 +157,6 @@ class DetailViewModel @Inject constructor(
                         _screenState.update { it.copy(detailInfo = data) }
                         _filmId = data.filmId
                         getFavourites(data.filmId)
-                        getVideoHistoryData(data.filmId)
                     }
                 }
         }

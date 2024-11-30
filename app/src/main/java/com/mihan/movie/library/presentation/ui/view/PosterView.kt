@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import coil.compose.SubcomposeAsyncImage
 import com.mihan.movie.library.presentation.ui.size100dp
@@ -16,7 +15,6 @@ import com.mihan.movie.library.presentation.ui.size8dp
 
 private const val POSTER_ASPECT_RATIO = 1 / 1.4f
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun PosterView(
     imageUrl: String,

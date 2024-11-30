@@ -14,6 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
@@ -34,13 +38,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import androidx.tv.foundation.lazy.list.TvLazyColumn
-import androidx.tv.foundation.lazy.list.TvLazyRow
-import androidx.tv.foundation.lazy.list.items
-import androidx.tv.foundation.lazy.list.rememberTvLazyListState
 import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.mihan.movie.library.R
@@ -82,9 +81,9 @@ fun FilterDialog(
     val movieCollections by remember { derivedStateOf { movieCollectionsMap[selectedCategory] ?: emptyList() } }
     var selectedGenre by remember { mutableStateOf(genreFilter) }
     var selectedMoviePeriod by remember { mutableStateOf(moviePeriod) }
-    val categoryListState = rememberTvLazyListState()
-    val genreListState = rememberTvLazyListState()
-    val moviePeriodListState = rememberTvLazyListState()
+    val categoryListState = rememberLazyListState()
+    val genreListState = rememberLazyListState()
+    val moviePeriodListState = rememberLazyListState()
     val categoryFocusRequester = remember { FocusRequester() }
     val scope = rememberCoroutineScope()
 
@@ -100,7 +99,7 @@ fun FilterDialog(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        TvLazyColumn(
+                        LazyColumn(
                             state = categoryListState,
                             modifier = modifier
                                 .height(size110dp)
@@ -123,7 +122,7 @@ fun FilterDialog(
                                 )
                             }
                         }
-                        TvLazyColumn(
+                        LazyColumn(
                             state = genreListState,
                             modifier = modifier
                                 .height(size110dp)
@@ -140,7 +139,7 @@ fun FilterDialog(
                                 )
                             }
                         }
-                        TvLazyColumn(
+                        LazyColumn(
                             state = moviePeriodListState,
                             modifier = modifier
                                 .height(size110dp)
@@ -165,7 +164,7 @@ fun FilterDialog(
                         stringResId = R.string.dialog_title_collections,
                         modifier = modifier.padding(top = size16dp, bottom = size8dp)
                     )
-                    TvLazyRow {
+                    LazyRow {
                         items(movieCollections) { collectionItem ->
                             CollectionItem(
                                 imageResId = collectionItem.iconResId,
@@ -192,7 +191,6 @@ fun FilterDialog(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun CategoryItem(
     itemText: String,
@@ -225,7 +223,6 @@ private fun CategoryItem(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun SearchButton(
     onButtonClick: () -> Unit
@@ -255,7 +252,6 @@ private fun DialogTitle(
     )
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun CollectionItem(
     imageResId: Int,

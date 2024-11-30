@@ -5,9 +5,12 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -45,14 +48,15 @@ import com.mihan.movie.library.common.utils.AppUpdatesChecker
 import com.mihan.movie.library.common.utils.EventManager
 import com.mihan.movie.library.common.utils.SharedPrefs
 import com.mihan.movie.library.domain.usecases.gson_repository.CheckNotificationMessageUseCase
+import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
 import com.mihan.movie.library.presentation.navigation.Screens
-import com.mihan.movie.library.presentation.screens.NavGraphs
-import com.mihan.movie.library.presentation.ui.size50dp
+import com.mihan.movie.library.presentation.ui.size60dp
 import com.mihan.movie.library.presentation.ui.sizeEmpty
 import com.mihan.movie.library.presentation.ui.theme.MovieLibraryTheme
 import com.mihan.movie.library.presentation.ui.view.DrawerContent
 import com.mihan.movie.library.presentation.ui.view.InformationDialog
 import com.ramcosta.composedestinations.DestinationsNavHost
+import com.ramcosta.composedestinations.generated.NavGraphs
 import dagger.hilt.android.AndroidEntryPoint
 import io.appmetrica.analytics.AppMetrica
 import kotlinx.coroutines.delay
@@ -70,7 +74,7 @@ class MainActivity : ComponentActivity() {
     internal lateinit var dataStorePrefs: DataStorePrefs
 
     @Inject
-    internal  lateinit var sharedPrefs: SharedPrefs
+    internal lateinit var sharedPrefs: SharedPrefs
 
     @Inject
     internal lateinit var appUpdatesChecker: AppUpdatesChecker
@@ -92,7 +96,8 @@ class MainActivity : ComponentActivity() {
             val primaryColor by remember { primaryColorState }
             MovieLibraryTheme(selectedColor = primaryColor) {
                 val appUpdateState = dataStorePrefs.getAppUpdates().collectAsStateWithLifecycle(initialValue = false)
-                val hasNewSeries by dataStorePrefs.getNewSeriesStatus().collectAsStateWithLifecycle(initialValue = false)
+                val hasNewSeries by dataStorePrefs.getNewSeriesStatus()
+                    .collectAsStateWithLifecycle(initialValue = false)
                 val isAppUpdateAvailable by remember { appUpdateState }
                 val navController = rememberNavController()
                 val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -104,15 +109,22 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     shape = RectangleShape
                 ) {
+                    val screenWithDrawer = currentDestination in screensWithDrawer
                     val contentStartPadding by animateDpAsState(
-                        targetValue = if (currentDestination in screensWithDrawer) size50dp else sizeEmpty,
-                        animationSpec = tween(),
+                        targetValue = if (screenWithDrawer) size60dp else sizeEmpty,
+                        animationSpec = tween(delayMillis = TWEEN_DURATION),
                         label = "dpAnimation"
                     )
                     ModalNavigationDrawer(
                         drawerState = drawerState,
                         drawerContent = {
-                            if (currentDestination in screensWithDrawer)
+                            AnimatedVisibility(
+                                screenWithDrawer,
+                                enter = fadeIn(
+                                    animationSpec = tween(delayMillis = AnimatedScreenTransitions.TWEEN_DURATION)
+                                ),
+                                exit = fadeOut(),
+                            ) {
                                 DrawerContent(
                                     drawerState = drawerState,
                                     currentDestination = currentDestination,
@@ -120,6 +132,7 @@ class MainActivity : ComponentActivity() {
                                     isNewSeriesAvailable = hasNewSeries,
                                     navController = navController
                                 )
+                            }
                         },
                         modifier = Modifier
                             .background(MaterialTheme.colorScheme.background)
@@ -206,6 +219,7 @@ class MainActivity : ComponentActivity() {
         )
         private const val ON_BACK_PRESSED_TIME_INTERVAL = 3000L
         private const val DELAY_TIME_BEFORE_SENDING_EVENT = 5000L
+        private const val TWEEN_DURATION = 600
     }
 }
 

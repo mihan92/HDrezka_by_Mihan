@@ -17,11 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import com.mihan.movie.library.common.models.VideoCategory
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun VideoCategoryDropDownMenu(
     videoCategory: VideoCategory,

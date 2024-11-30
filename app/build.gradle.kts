@@ -5,8 +5,8 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
-    id("com.google.devtools.ksp") version "1.9.21-1.0.16"
-    kotlin("plugin.serialization") version "1.9.21"
+    id("com.google.devtools.ksp") version "1.9.22-1.0.17"
+    kotlin("plugin.serialization") version "1.9.22"
     kotlin("kapt")
 }
 
@@ -18,8 +18,8 @@ android {
         applicationId = "com.mihan.movie.library"
         minSdk = 23
         targetSdk = 35
-        versionCode = 25
-        versionName = "3.0.4"
+        versionCode = 26
+        versionName = "3.0.5"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -50,7 +50,7 @@ android {
         buildConfig = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.7"
+        kotlinCompilerExtensionVersion = "1.5.8"
     }
     packaging {
         resources {
@@ -66,7 +66,7 @@ kapt {
 dependencies {
 
     val hiltVersion = "2.51.1"
-    val navigationVersion = "1.9.55"
+    val navigationVersion = "2.1.0-beta14"
     val retrofitVersion = "2.9.0"
     val coilVersion = "2.5.0"
     val dataStoreVersion = "1.1.1"
@@ -80,7 +80,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.tv:tv-foundation:1.0.0-alpha11")
     implementation("androidx.tv:tv-material:1.0.0")
-    implementation("androidx.media3:media3-extractor:1.4.1")
+    implementation("androidx.media3:media3-extractor:1.5.0")
     implementation("androidx.compose.material3:material3:1.3.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
@@ -95,7 +95,7 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     //Navigation
-    implementation("io.github.raamcosta.compose-destinations:animations-core:$navigationVersion")
+    implementation("io.github.raamcosta.compose-destinations:core:$navigationVersion")
     ksp("io.github.raamcosta.compose-destinations:ksp:$navigationVersion")
 
     //Retrofit
@@ -104,7 +104,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
 
     //Serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     //Jsoup
     implementation ("org.jsoup:jsoup:1.17.2")

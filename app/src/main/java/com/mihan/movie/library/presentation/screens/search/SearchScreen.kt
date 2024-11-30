@@ -15,6 +15,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -45,12 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.tv.foundation.lazy.grid.TvGridCells
-import androidx.tv.foundation.lazy.grid.TvLazyVerticalGrid
-import androidx.tv.foundation.lazy.grid.items
-import androidx.tv.foundation.lazy.grid.rememberTvLazyGridState
 import androidx.tv.material3.ButtonDefaults
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
 import androidx.tv.material3.IconButton
 import androidx.tv.material3.MaterialTheme
@@ -61,8 +60,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.mihan.movie.library.R
 import com.mihan.movie.library.common.Constants
 import com.mihan.movie.library.common.utils.VoiceRecognizerState
-import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
-import com.mihan.movie.library.presentation.screens.destinations.DetailVideoScreenDestination
+import com.mihan.movie.library.presentation.navigation.AppNavGraph
 import com.mihan.movie.library.presentation.ui.size10dp
 import com.mihan.movie.library.presentation.ui.size16dp
 import com.mihan.movie.library.presentation.ui.size18sp
@@ -70,6 +68,7 @@ import com.mihan.movie.library.presentation.ui.size28dp
 import com.mihan.movie.library.presentation.ui.view.MovieItem
 import com.mihan.movie.library.presentation.ui.view.PageFooter
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.generated.destinations.DetailVideoScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
 private const val SEARCH_FIELD_BACKGROUND_ALPHA = 0.1f
@@ -80,7 +79,7 @@ private val LocalCurrentPage = compositionLocalOf { 1 }
 private val LocalSearchString = compositionLocalOf { Constants.EMPTY_STRING }
 
 @OptIn(ExperimentalPermissionsApi::class)
-@Destination(style = AnimatedScreenTransitions::class)
+@Destination<AppNavGraph>
 @Composable
 fun SearchScreen(
     searchViewModel: SearchViewModel = hiltViewModel(),
@@ -126,7 +125,6 @@ fun SearchScreen(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun Content(
     voiceState: VoiceRecognizerState,
@@ -157,10 +155,10 @@ private fun Content(
                     contentAlignment = Alignment.BottomCenter,
                     modifier = modifier.padding(bottom = size10dp)
                 ) {
-                    val state = rememberTvLazyGridState()
-                    TvLazyVerticalGrid(
+                    val state = rememberLazyGridState()
+                    LazyVerticalGrid(
                         state = state,
-                        columns = TvGridCells.Fixed(NUMBER_OF_GRID_CELLS),
+                        columns = GridCells.Fixed(NUMBER_OF_GRID_CELLS),
                         modifier = modifier
                             .fillMaxSize()
                             .focusRequester(focusRequester)
@@ -198,7 +196,6 @@ private fun Content(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun SearchField(
     voiceState: VoiceRecognizerState,
@@ -251,7 +248,6 @@ private fun SearchField(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun VoiceSearchButton(
     isSpeaking: Boolean,
@@ -287,7 +283,6 @@ private fun VoiceSearchButton(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun ButtonSearch(
     modifier: Modifier = Modifier,
@@ -308,7 +303,6 @@ private fun ButtonSearch(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun TextHint(
     hintResId: Int,
