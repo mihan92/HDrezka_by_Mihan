@@ -120,7 +120,7 @@ fun DetailVideoScreen(
             isDialogShow = serialDialogState,
             videoHistoryModel = videoHistoryModel,
             translations = videoInfo.translations,
-            seasons = listOfSeasons,
+            seasonsWithEpisodes = listOfSeasons,
             onTranslationItemClicked = { translate ->
                 val translatorId = videoInfo.translations.getValue(translate)
                 detailViewModel.selectTranslateForSerials(translatorId)

@@ -1,6 +1,6 @@
 package com.mihan.movie.library.presentation.ui.view
 
-import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,13 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -40,7 +39,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -53,7 +51,9 @@ import com.mihan.movie.library.presentation.ui.size10dp
 import com.mihan.movie.library.presentation.ui.size14sp
 import com.mihan.movie.library.presentation.ui.size16dp
 import com.mihan.movie.library.presentation.ui.size16sp
+import com.mihan.movie.library.presentation.ui.size18dp
 import com.mihan.movie.library.presentation.ui.size28dp
+import com.mihan.movie.library.presentation.ui.size2dp
 import com.mihan.movie.library.presentation.ui.size4dp
 import com.mihan.movie.library.presentation.ui.size8dp
 import com.mihan.movie.library.presentation.ui.theme.dialogBgColor
@@ -66,7 +66,7 @@ fun SerialDialog(
     isDialogShow: State<Boolean>,
     videoHistoryModel: VideoHistoryModel?,
     translations: Map<String, String>,
-    seasons: List<SerialModel>,
+    seasonsWithEpisodes: List<SerialModel>,  // Передаем уже обновленную модель
     onTranslationItemClicked: (String) -> Unit,
     onEpisodeClicked: (String, String) -> Unit,
     onDialogDismiss: () -> Unit,
@@ -89,7 +89,7 @@ fun SerialDialog(
                     onTranslationItemClicked = onTranslationItemClicked
                 )
                 ExpandableSeasonList(
-                    sections = seasons,
+                    seasons = seasonsWithEpisodes,
                     videoHistoryModel = videoHistoryModel,
                     onEpisodeClicked = onEpisodeClicked
                 )
@@ -151,44 +151,55 @@ private fun ExpandableTranslationList(
 
 @Composable
 private fun ExpandableSeasonList(
-    sections: List<SerialModel>,
+    seasons: List<SerialModel>,
     videoHistoryModel: VideoHistoryModel?,
     onEpisodeClicked: (String, String) -> Unit
 ) {
-    val context = LocalContext.current
-    runCatching {
-        val activeSeason = videoHistoryModel?.season ?: ""
-        val isExpandedMap = remember {
-            val map = mutableStateMapOf<Int, Boolean>()
-            sections.forEachIndexed { index, seasonModel ->
-                map[index] = seasonModel.season == activeSeason
-            }
-            map
-        }
-        val activeEpisodeIndex = videoHistoryModel?.episode?.toInt() ?: 0
-        val activeSeasonIndex = videoHistoryModel?.season?.toInt() ?: 0
-        val initialIndex = if (activeEpisodeIndex > 5) activeEpisodeIndex else activeSeasonIndex
-        val state = rememberLazyListState(initialFirstVisibleItemIndex = initialIndex)
-        LazyColumn(
-            state = state,
-            content = {
-                sections.onEachIndexed { index, value ->
-                    section(
-                        header = value.season,
-                        listData = value.episodes,
-                        isActiveSeason = value.season == videoHistoryModel?.season,
-                        activeEpisode = videoHistoryModel?.episode,
-                        isExpanded = isExpandedMap[index] ?: false,
-                        onHeaderClick = {
-                            isExpandedMap[index] = !(isExpandedMap[index] ?: true)
-                        },
-                        onEpisodeClicked = { onEpisodeClicked(value.season, it) }
+    // Стейт для отслеживания открытого сезона
+    var expandedSeason by remember { mutableStateOf<String?>(null) }
+
+    // Сохраняем состояние выбранного эпизода для каждого сезона
+    val seasonEpisodesState = remember { mutableStateMapOf<String, String?>() }
+
+    LazyColumn {
+        items(seasons) { seasonWithEpisodes ->
+            // Проверяем, была ли хотя бы одна серия просмотрена в этом сезоне
+            val isSeasonExpanded = expandedSeason == seasonWithEpisodes.season ||
+                    videoHistoryModel?.season == seasonWithEpisodes.season
+
+            // Проверяем, какой эпизод был просмотрен для текущего сезона
+            val selectedEpisode = seasonEpisodesState[seasonWithEpisodes.season]
+                ?: videoHistoryModel?.takeIf { it.season == seasonWithEpisodes.season }?.episode
+
+            var isExpanded by remember { mutableStateOf(isSeasonExpanded) }
+
+            SectionHeader(
+                seasonTitle = seasonWithEpisodes.season,
+                isExpanded = isExpanded,
+                onHeaderClicked = {
+                    // Если сезон еще не был открыт, открываем его, иначе закрываем
+                    expandedSeason = if (isExpanded) null else seasonWithEpisodes.season
+                    isExpanded = !isExpanded
+                }
+            )
+
+            if (isExpanded) {
+                seasonWithEpisodes.episodes.forEach { episode ->
+                    DialogTextWithLoading(
+                        title = episode.title,
+                        isLoading = episode.isLoading,
+                        selected = episode.title == selectedEpisode,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                // Обновляем состояние выбранного эпизода для текущего сезона
+                                seasonEpisodesState[seasonWithEpisodes.season] = episode.title
+                                onEpisodeClicked(seasonWithEpisodes.season, episode.title)
+                            }
                     )
                 }
             }
-        )
-    }.onFailure {
-        Toast.makeText(context, stringResource(R.string.error_msg_cant_process_episode), Toast.LENGTH_LONG).show()
+        }
     }
 }
 
@@ -215,31 +226,44 @@ private fun SectionHeader(
     }
 }
 
-private fun LazyListScope.section(
-    header: String,
-    listData: List<String>,
-    isActiveSeason: Boolean,
-    activeEpisode: String?,
-    isExpanded: Boolean,
-    onEpisodeClicked: (String) -> Unit,
-    onHeaderClick: () -> Unit
+@Composable
+private fun DialogTextWithLoading(
+    title: String,
+    isLoading: Boolean,
+    selected: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
-    item {
-        SectionHeader(
-            seasonTitle = header,
-            isExpanded = isExpanded,
-            onHeaderClicked = onHeaderClick
+    val focusRequester = remember { FocusRequester() }
+    Row(
+        modifier = modifier
+            .padding(vertical = size8dp, horizontal = size16dp)
+            .focusRequester(focusRequester)
+            .focusable()
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        // Текст серии
+        Text(
+            text = "Серия $title",
+            fontSize = size16sp,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
         )
-    }
-    if (isExpanded) {
-        items(listData) {
-            DialogText(
-                title = stringResource(id = R.string.episode_title, it),
-                selected = isActiveSeason && activeEpisode == it,
+        // Индикатор загрузки
+        AnimatedVisibility(isLoading) {
+            CircularProgressIndicator(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onEpisodeClicked(it) }
+                    .size(size18dp),
+                color = MaterialTheme.colorScheme.primary,
+                strokeWidth = size2dp
             )
+        }
+        LaunchedEffect(key1 = Unit) {
+            if (selected) {
+                runCatching {
+                    focusRequester.requestFocus()
+                }
+            }
         }
     }
 }
@@ -271,29 +295,4 @@ private fun DialogText(
             .padding(vertical = size8dp, horizontal = size16dp)
             .focusable()
     )
-}
-
-@Composable
-private fun DialogText(
-    title: String,
-    selected: Boolean,
-    modifier: Modifier = Modifier
-) {
-    val focusRequester = remember { FocusRequester() }
-    Text(
-        text = title,
-        fontSize = size16sp,
-        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
-        modifier = modifier
-            .padding(vertical = size8dp, horizontal = size16dp)
-            .focusRequester(focusRequester)
-            .focusable()
-    )
-    LaunchedEffect(key1 = Unit) {
-        if (selected) {
-            runCatching {
-                focusRequester.requestFocus()
-            }
-        }
-    }
 }
