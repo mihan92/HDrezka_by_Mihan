@@ -1,14 +1,17 @@
 package com.mihan.movie.library.data.models
 
 import com.mihan.movie.library.domain.models.NewSeriesModel
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class NewSeriesModelDto(
-    val videoId: String,
-    val viewDate: String,
-    val title: String,
-    val lastInfo: String,
-    val pageUrl: String,
-    val posterUrl: String,
+    @SerialName("videoId") val videoId: String,
+    @SerialName("viewDate") val viewDate: String,
+    @SerialName("title") val title: String,
+    @SerialName("lastInfo") val lastInfo: String,
+    @SerialName("pageUrl") val pageUrl: String,
+    @SerialName("posterUrl") val posterUrl: String,
 )
 
 

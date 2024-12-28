@@ -28,7 +28,7 @@ import com.mihan.movie.library.domain.usecases.parser.GetSeasonsByTranslatorIdUs
 import com.mihan.movie.library.domain.usecases.parser.GetStreamsBySeasonIdUseCase
 import com.mihan.movie.library.domain.usecases.parser.GetStreamsByTranslatorIdUseCase
 import com.mihan.movie.library.domain.usecases.parser.GetTranslationsByUrlUseCase
-import com.mihan.movie.library.presentation.screens.navArgs
+import com.ramcosta.composedestinations.generated.navArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -88,6 +88,7 @@ class DetailViewModel @Inject constructor(
 
     fun onButtonWatchClicked() {
         viewModelScope.launch {
+            getVideoHistoryData(_filmId)
             getTranslationsByUrlUseCase(navArgs.movieUrl)
                 .collect { result ->
                     handleApiResponse(result) { data ->
@@ -156,7 +157,6 @@ class DetailViewModel @Inject constructor(
                         _screenState.update { it.copy(detailInfo = data) }
                         _filmId = data.filmId
                         getFavourites(data.filmId)
-                        getVideoHistoryData(data.filmId)
                     }
                 }
         }
@@ -223,10 +223,12 @@ class DetailViewModel @Inject constructor(
 
     private fun getStreamsBySeasonId(translationId: String, videoId: String, season: String, episode: String) {
         viewModelScope.launch {
+            updateEpisodeLoadingState(season, episode, true)
             getStreamsBySeasonIdUseCase(translationId, videoId, season, episode)
                 .collect { result ->
                     handleApiResponse(result) { data ->
                         _streamModel.emit(data)
+                        updateEpisodeLoadingState(season, episode, false)
                     }
                 }
         }
@@ -251,6 +253,7 @@ class DetailViewModel @Inject constructor(
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 setDataAndType(Uri.parse(videoUrl), "video/*")
                 putExtra("title", title)
+                putExtra("forcename", title)
             }
             context.startActivity(intent)
             _screenState.value.detailInfo?.let { detailInfo ->
@@ -310,6 +313,25 @@ class DetailViewModel @Inject constructor(
         val translations = _videoInfo.value.translations
         val matchingKey = translations.keys.firstOrNull { key -> key.contains(translatorName, ignoreCase = true) }
         return translations[matchingKey] ?: translations.values.first()
+    }
+
+    private fun updateEpisodeLoadingState(season: String, episode: String, isLoading: Boolean) {
+        val updatedSeasons = _listOfSeasons.value.map { serialModel ->
+            if (serialModel.season == season) {
+                serialModel.copy(
+                    episodes = serialModel.episodes.map { episodeModel ->
+                        if (episodeModel.title == episode) {
+                            episodeModel.copy(isLoading = isLoading)
+                        } else {
+                            episodeModel
+                        }
+                    }
+                )
+            } else {
+                serialModel
+            }
+        }
+        _listOfSeasons.value = updatedSeasons
     }
 
     private inline fun <T> handleApiResponse(result: ApiResponse<T>, onSuccess: (T) -> Unit) {

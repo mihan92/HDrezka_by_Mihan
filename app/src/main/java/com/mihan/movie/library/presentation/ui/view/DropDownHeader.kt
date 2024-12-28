@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import com.mihan.movie.library.presentation.ui.size100dp
 import com.mihan.movie.library.presentation.ui.size10dp
@@ -31,7 +30,6 @@ import com.mihan.movie.library.presentation.ui.size20dp
 
 private const val HEADER_FRACTION = 0.8f
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun DropDownHeader(
     selectedItemTitle: String,
@@ -61,7 +59,6 @@ fun DropDownHeader(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun DropDownHeader(
     selectedColor: Color,

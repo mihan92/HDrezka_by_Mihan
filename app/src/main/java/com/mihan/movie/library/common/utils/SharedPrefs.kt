@@ -39,10 +39,20 @@ class SharedPrefs @Inject constructor(context: Context) {
 
     fun getUserAuthStatus(): Boolean = sharedPreferences.getBoolean(AUTH_STATUS_KEY, false)
 
+    fun isUnsupportedDeviceMessageShowed(): Boolean = sharedPreferences.getBoolean(UNSUPPORTED_DEVICE_KEY, false)
+
+    fun updateUnsupportedDeviceMessageStatus(isShowed: Boolean) {
+        with(sharedPreferences.edit()) {
+            putBoolean(UNSUPPORTED_DEVICE_KEY, isShowed)
+            apply()
+        }
+    }
+
     companion object {
         private const val COOKIES_KEY = "cookies"
         private const val USER_ID_KEY = "userId"
         private const val AUTH_STATUS_KEY = "auth_status"
         private const val SHARED_PREFS_NAME = "MovieLibraryPrefs"
+        private const val UNSUPPORTED_DEVICE_KEY = "UnsupportedDeviceKey"
     }
 }

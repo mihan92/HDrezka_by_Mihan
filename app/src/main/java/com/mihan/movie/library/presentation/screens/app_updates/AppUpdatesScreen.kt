@@ -13,30 +13,24 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.IntSize
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.mihan.movie.library.R
 import com.mihan.movie.library.domain.models.ChangelogModel
-import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
+import com.mihan.movie.library.presentation.navigation.AppNavGraph
 import com.mihan.movie.library.presentation.ui.size18sp
 import com.mihan.movie.library.presentation.ui.size20dp
 import com.mihan.movie.library.presentation.ui.size28dp
@@ -46,7 +40,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 
 private const val PROGRESS_BACKGROUND_ALPHA = 0.2f
 
-@Destination(style = AnimatedScreenTransitions::class)
+@Destination<AppNavGraph>
 @Composable
 fun AppUpdatesScreen(
     appUpdatesViewModel: AppUpdatesViewModel = hiltViewModel()
@@ -70,7 +64,6 @@ fun AppUpdatesScreen(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun Content(
     changelogModel: ChangelogModel?,
@@ -78,12 +71,6 @@ private fun Content(
     onButtonUpdatePressed: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var coordinatesSize by remember { mutableStateOf(IntSize.Zero) }
-    val isButtonCanFocus by remember {
-        derivedStateOf {
-            coordinatesSize.width > 0 && coordinatesSize.height > 0
-        }
-    }
     changelogModel?.let { model ->
         Column(
             modifier = modifier.fillMaxWidth(0.6f),
@@ -106,25 +93,19 @@ private fun Content(
                     focusedContentColor = MaterialTheme.colorScheme.onBackground
                 ),
                 modifier = modifier
-                    .onGloballyPositioned { coordinates ->
-                        val newSize = coordinates.size
-                        if (newSize != coordinatesSize) {
-                            coordinatesSize = newSize
-                        }
-                    }
                     .focusRequester(focusRequester)
             ) {
                 Text(text = stringResource(id = R.string.update_title))
             }
         }
     }
-    LaunchedEffect(key1 = isButtonCanFocus) {
-        if (isButtonCanFocus)
+    LaunchedEffect(key1 = Unit) {
+        runCatching {
             focusRequester.requestFocus()
+        }
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun DownloadingProgress(
     downloadingProgress: Float,

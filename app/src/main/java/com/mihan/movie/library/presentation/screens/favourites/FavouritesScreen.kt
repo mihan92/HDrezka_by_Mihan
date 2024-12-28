@@ -6,12 +6,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -20,29 +24,27 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.tv.foundation.lazy.list.TvLazyColumn
-import androidx.tv.foundation.lazy.list.items
-import androidx.tv.foundation.lazy.list.rememberTvLazyListState
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.mihan.movie.library.R
+import com.mihan.movie.library.common.Constants
 import com.mihan.movie.library.domain.models.FavouritesModel
-import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
-import com.mihan.movie.library.presentation.screens.destinations.DetailVideoScreenDestination
+import com.mihan.movie.library.presentation.navigation.AppNavGraph
 import com.mihan.movie.library.presentation.ui.size16dp
 import com.mihan.movie.library.presentation.ui.size20sp
 import com.mihan.movie.library.presentation.ui.size8dp
 import com.mihan.movie.library.presentation.ui.view.ButtonDelete
+import com.mihan.movie.library.presentation.ui.view.ConfirmDeleteDialog
 import com.mihan.movie.library.presentation.ui.view.EmptyListPlaceholder
 import com.mihan.movie.library.presentation.ui.view.PosterView
 import com.mihan.movie.library.presentation.ui.view.RectangleButton
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.generated.destinations.DetailVideoScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
 private const val SELECTED_BACKGROUND_ALPHA = 0.1f
 
-@Destination(style = AnimatedScreenTransitions::class)
+@Destination<AppNavGraph>
 @Composable
 fun FavouritesScreen(
     favouritesViewModel: FavouritesViewModel = hiltViewModel(),
@@ -50,11 +52,24 @@ fun FavouritesScreen(
 ) {
     val favouritesList by favouritesViewModel.favouritesList.collectAsStateWithLifecycle()
     val baseUrl by favouritesViewModel.baseUrl.collectAsStateWithLifecycle()
+    var deleteDialogState by rememberSaveable { mutableStateOf(false) }
+    var videoId by remember { mutableStateOf(Constants.EMPTY_STRING) }
     if (favouritesList.isEmpty()) EmptyListPlaceholder(text = stringResource(id = R.string.favourites_screen_placeholder))
     Content(
         favouritesList = favouritesList,
         onButtonWatchClicked = { navigator.navigate(DetailVideoScreenDestination("$baseUrl${it.videoPageUrl}")) },
-        onItemDeleteClicked = favouritesViewModel::onButtonDeletePressed
+        onItemDeleteClicked = { id ->
+            videoId = id
+            deleteDialogState = true
+        }
+    )
+    ConfirmDeleteDialog(
+        showDialogState = deleteDialogState,
+        onButtonYesPressed = {
+            deleteDialogState = false
+            if (videoId.isNotEmpty()) favouritesViewModel.onButtonDeletePressed(videoId)
+        },
+        onButtonNoPressed = { deleteDialogState = false },
     )
 }
 
@@ -65,9 +80,9 @@ private fun Content(
     onItemDeleteClicked: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val state = rememberTvLazyListState()
+    val state = rememberLazyListState()
     val focusRequester = remember { FocusRequester() }
-    TvLazyColumn(
+    LazyColumn(
         state = state,
         modifier = modifier
             .fillMaxSize()
@@ -82,12 +97,14 @@ private fun Content(
         }
     }
     LaunchedEffect(key1 = favouritesList) {
-        if (favouritesList.isNotEmpty())
-            focusRequester.requestFocus()
+        if (favouritesList.isNotEmpty()) {
+            runCatching {
+                focusRequester.requestFocus()
+            }
+        }
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun FavouritesItem(
     favouritesModel: FavouritesModel,

@@ -17,10 +17,10 @@ import com.mihan.movie.library.domain.usecases.auth.LogoutUseCase
 import com.mihan.movie.library.domain.usecases.parser.GetNewSeriesUseCase
 import com.mihan.movie.library.domain.usecases.parser.GetUserInfoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -41,9 +41,11 @@ class SettingsViewModel @Inject constructor(
     private val _siteDialogState = MutableStateFlow(false)
     private val _userInfo = MutableStateFlow(UserInfo())
     private val _isUserAuthorized = MutableStateFlow(false)
+    private val _settingsScreenState = MutableStateFlow(SettingsScreenState())
     val isUserAuthorized = _isUserAuthorized.asStateFlow()
     val siteDialogState = _siteDialogState.asStateFlow()
     val userInfo = _userInfo.asStateFlow()
+    val settingsScreenState = _settingsScreenState.asStateFlow()
 
     val getVideoCategory = dataStorePrefs.getVideoCategory().stateIn(
         viewModelScope,
@@ -82,14 +84,26 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    suspend fun login(loginAndPass: Pair<String, String>): Boolean {
-        val isSuccess = loginUseCase(loginAndPass.first, loginAndPass.second)
-        delay(500)
-        if (isSuccess) {
-            getUserInfo()
-            getNewSeries()
+    fun login(loginAndPass: Pair<String, String>) {
+        viewModelScope.launch {
+            loginUseCase(loginAndPass.first, loginAndPass.second)
+                .onEach { result ->
+                    when (result) {
+                        is ApiResponse.Error -> {
+                            _settingsScreenState.update { SettingsScreenState(loginLoadingState = false) }
+                            eventManager.sendEvent(result.errorMessage)
+                        }
+                        is ApiResponse.Loading -> {
+                            _settingsScreenState.update { SettingsScreenState(loginLoadingState = true) }
+                        }
+                        is ApiResponse.Success -> {
+                            _settingsScreenState.update { it.copy(loginLoadingState = false, isLoginSuccess = true) }
+                            getUserInfo()
+                            getNewSeries()
+                        }
+                    }
+                }.launchIn(this)
         }
-        return isSuccess
     }
 
     fun logout() {
@@ -116,6 +130,8 @@ class SettingsViewModel @Inject constructor(
     }
 
     private suspend fun getNewSeries() {
+        val isAuthorized = sharedPrefs.getUserAuthStatus()
+        if (!isAuthorized) return
         getNewSeriesUseCase().onEach { result ->
             when (result) {
                 is ApiResponse.Loading -> Unit

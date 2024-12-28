@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -23,8 +25,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.tv.foundation.lazy.list.TvLazyColumn
-import androidx.tv.foundation.lazy.list.items
 import androidx.tv.material3.Text
 import com.mihan.movie.library.R
 import com.mihan.movie.library.presentation.ui.size10dp
@@ -62,7 +62,7 @@ fun FilmDialog(
                     fontWeight = FontWeight.W700,
                     modifier = modifier.padding(vertical = size8dp)
                 )
-                TvLazyColumn(
+                LazyColumn(
                     modifier = Modifier.focusRequester(focusRequester)
                 ) {
                     items(translations.keys.toList()) { item ->
@@ -83,7 +83,9 @@ fun FilmDialog(
             }
         }
         LaunchedEffect(key1 = Unit) {
-            focusRequester.requestFocus()
+            runCatching {
+                focusRequester.requestFocus()
+            }
         }
     }
 }

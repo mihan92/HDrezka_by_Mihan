@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -35,19 +37,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.tv.foundation.lazy.list.TvLazyRow
-import androidx.tv.foundation.lazy.list.items
 import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import coil.compose.SubcomposeAsyncImage
 import com.mihan.movie.library.R
 import com.mihan.movie.library.domain.models.ActorModel
 import com.mihan.movie.library.domain.models.VideoDetailModel
-import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
-import com.mihan.movie.library.presentation.screens.destinations.FilmsWithActorsScreenDestination
+import com.mihan.movie.library.presentation.navigation.AppNavGraph
 import com.mihan.movie.library.presentation.ui.size16dp
 import com.mihan.movie.library.presentation.ui.size18dp
 import com.mihan.movie.library.presentation.ui.size18sp
@@ -61,6 +59,7 @@ import com.mihan.movie.library.presentation.ui.size8dp
 import com.mihan.movie.library.presentation.ui.view.FilmDialog
 import com.mihan.movie.library.presentation.ui.view.SerialDialog
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.generated.destinations.FilmsWithActorsScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
 private val POSTER_WIDTH = 350.dp
@@ -68,8 +67,7 @@ private val POSTER_HEIGHT = 420.dp
 private const val DARKENING_SCREEN_DURING_LOADING_PROCESS = 0.5f
 
 
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Destination(navArgsDelegate = DetailScreenNavArgs::class, style = AnimatedScreenTransitions::class)
+@Destination<AppNavGraph>(navArgs = DetailScreenNavArgs::class)
 @Composable
 fun DetailVideoScreen(
     detailViewModel: DetailViewModel = hiltViewModel(),
@@ -122,7 +120,7 @@ fun DetailVideoScreen(
             isDialogShow = serialDialogState,
             videoHistoryModel = videoHistoryModel,
             translations = videoInfo.translations,
-            seasons = listOfSeasons,
+            seasonsWithEpisodes = listOfSeasons,
             onTranslationItemClicked = { translate ->
                 val translatorId = videoInfo.translations.getValue(translate)
                 detailViewModel.selectTranslateForSerials(translatorId)
@@ -184,7 +182,6 @@ private fun Content(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun VideoTitle(
     videoDetailModel: VideoDetailModel,
@@ -205,7 +202,6 @@ private fun VideoTitle(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun Poster(
     videoDetailModel: VideoDetailModel,
@@ -275,8 +271,6 @@ private fun RatingInfo(
     }
 }
 
-
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun ButtonsSection(
     isVideoHasFavourites: Boolean,
@@ -395,7 +389,7 @@ private fun ActorsList(
             stringResource(actorsTitleResId),
             modifier = modifier.padding(end = size8dp)
         )
-        TvLazyRow {
+        LazyRow {
             items(actors.entries.toList()) { item ->
                 ActorItem(
                     item.value,
@@ -409,7 +403,6 @@ private fun ActorsList(
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun ActorItem(
     title: String,

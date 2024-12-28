@@ -6,6 +6,7 @@ import android.util.Patterns
 import com.mihan.movie.library.common.Constants
 import com.mihan.movie.library.common.DataStorePrefs
 import com.mihan.movie.library.common.extentions.logger
+import com.mihan.movie.library.common.utils.LinkDecoder
 import com.mihan.movie.library.common.utils.SharedPrefs
 import com.mihan.movie.library.data.models.NewSeriesModelDto
 import com.mihan.movie.library.data.models.StreamDto
@@ -15,6 +16,7 @@ import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import okhttp3.Cookie
@@ -46,7 +48,6 @@ class LocalRezkaParser @Inject constructor(
         val document = getConnection("${getBaseUrl()}/continue/").cookies(cookieMap).get()
         val notAuthorized = document.select("div.b-info__message").text()
         if (notAuthorized.isNotEmpty()) {
-            sharedPrefs.clearCookies()
             return@withContext emptyList()
         }
         fetchNewSeriesFromDocument(document)
@@ -59,7 +60,6 @@ class LocalRezkaParser @Inject constructor(
         val document = getConnection("${getBaseUrl()}/continue/").cookies(cookieMap).get()
         val notAuthorized = document.select("div.b-info__message").text()
         if (notAuthorized.isNotEmpty()) {
-            sharedPrefs.clearCookies()
             return@withContext emptyList()
         }
         fetchHistoryFromDocument(document)
@@ -81,30 +81,41 @@ class LocalRezkaParser @Inject constructor(
         videoId: String,
         season: String,
         episode: String
+    ): StreamDto = fetchStream(
+        getEncoded = { getEncodedString(translationId, videoId, season, episode) },
+        validate = ::checkValidateUrl,
+        desiredQuality = getVideoQuality()
+    )
+
+    suspend fun getStreamsByTranslationId(
+        translatorId: String,
+        filmId: String
+    ): StreamDto = fetchStream(
+        getEncoded = { getEncodedString(translatorId, filmId) },
+        validate = ::checkValidateUrl,
+        desiredQuality = getVideoQuality()
+    )
+
+    private suspend fun fetchStream(
+        getEncoded: suspend () -> String,
+        validate: suspend (List<StreamDto>) -> Boolean,
+        desiredQuality: String
     ): StreamDto = withContext(Dispatchers.IO) {
-        var streamList = parseSteams(getEncodedString(translationId, videoId, season, episode))
+        var streamList = LinkDecoder.getDecodedLinks(getEncoded())
+        var isValid = validate(streamList)
+        var counter = 0
+
         buildList {
-            var isValid = checkValidateUrl(streamList)
             while (!isValid || streamList.isEmpty()) {
-                streamList = parseSteams(getEncodedString(translationId, videoId, season, episode))
-                isValid = checkValidateUrl(streamList)
+                streamList = LinkDecoder.getDecodedLinks(getEncoded())
+                isValid = validate(streamList)
+                counter++
+                if (counter >= 10) error("Не удалось раскодировать ссылку. Попробуйте еще раз")
+                delay(1000L)
             }
             addAll(streamList)
-        }.firstOrNull { it.quality == getVideoQuality() } ?: streamList.last()
+        }.firstOrNull { it.quality == desiredQuality } ?: streamList.last()
     }
-
-    suspend fun getStreamsByTranslationId(translatorId: String, filmId: String): StreamDto =
-        withContext(Dispatchers.IO) {
-            var streamList = parseSteams(getEncodedString(translatorId, filmId))
-            buildList {
-                var isValid = checkValidateUrl(streamList)
-                while (!isValid || streamList.isEmpty()) {
-                    streamList = parseSteams(getEncodedString(translatorId, filmId))
-                    isValid = checkValidateUrl(streamList)
-                }
-                addAll(streamList)
-            }.firstOrNull { it.quality == getVideoQuality() } ?: streamList.last()
-        }
 
     private fun fetchNewSeriesFromDocument(document: Document): List<NewSeriesModelDto> = buildList {
         val elements = document.select("div.b-videosaves__list_item:not(.watched-row) div.td.info a.new-episode.own")

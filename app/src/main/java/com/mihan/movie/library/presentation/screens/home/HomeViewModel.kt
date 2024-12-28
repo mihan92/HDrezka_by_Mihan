@@ -11,6 +11,7 @@ import com.mihan.movie.library.common.models.MovieCollections
 import com.mihan.movie.library.common.models.MoviePeriod
 import com.mihan.movie.library.common.models.VideoCategory
 import com.mihan.movie.library.common.utils.EventManager
+import com.mihan.movie.library.common.utils.SharedPrefs
 import com.mihan.movie.library.common.utils.whileUiSubscribed
 import com.mihan.movie.library.domain.usecases.parser.GetCollectionsListVideoUseCase
 import com.mihan.movie.library.domain.usecases.parser.GetListFilteredVideoUseCase
@@ -33,7 +34,8 @@ class HomeViewModel @Inject constructor(
     private val getListFilteredVideoUseCase: GetListFilteredVideoUseCase,
     private val getCollectionsListVideoUseCase: GetCollectionsListVideoUseCase,
     private val eventManager: EventManager,
-    dataStorePrefs: DataStorePrefs
+    private val sharedPrefs: SharedPrefs,
+    dataStorePrefs: DataStorePrefs,
 ) : ViewModel() {
     private val _screenState = MutableSharedFlow<HomeScreenState>(replay = 1)
     private val _topBarState = MutableStateFlow(TopBarItems.Watching)
@@ -57,6 +59,8 @@ class HomeViewModel @Inject constructor(
         whileUiSubscribed,
         VideoCategory.All
     )
+    val isUnsupportedDeviceMessageShowed = sharedPrefs.isUnsupportedDeviceMessageShowed()
+    val isUserAuthorized = sharedPrefs.getUserAuthStatus()
 
     suspend fun getListVideo() {
         getListVideoUseCase.invoke(_topBarState.value, videoCategoryState.first(), _currentDefaultListPage.value)
@@ -117,6 +121,10 @@ class HomeViewModel @Inject constructor(
             getListFilteredVideo()
         } else
             _currentDefaultListPage.value = page
+    }
+
+    fun updateUnsupportedDeviceMessageStatus(isShowed: Boolean) {
+        sharedPrefs.updateUnsupportedDeviceMessageStatus(isShowed)
     }
 
     private fun getListFilteredVideo() {

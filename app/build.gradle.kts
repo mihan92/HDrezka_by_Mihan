@@ -5,21 +5,21 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
-    id("com.google.devtools.ksp") version "1.9.20-1.0.14"
-    kotlin("plugin.serialization") version "1.9.20"
+    id("com.google.devtools.ksp") version "1.9.22-1.0.17"
+    kotlin("plugin.serialization") version "1.9.22"
     kotlin("kapt")
 }
 
 android {
     namespace = "com.mihan.movie.library"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.mihan.movie.library"
         minSdk = 23
-        targetSdk = 34
-        versionCode = 22
-        versionName = "3.0.1"
+        targetSdk = 35
+        versionCode = 27
+        versionName = "3.0.6"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -39,18 +39,18 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
         buildConfig = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.5"
+        kotlinCompilerExtensionVersion = "1.5.8"
     }
     packaging {
         resources {
@@ -66,25 +66,25 @@ kapt {
 dependencies {
 
     val hiltVersion = "2.51.1"
-    val navigationVersion = "1.9.55"
+    val navigationVersion = "2.1.0-beta14"
     val retrofitVersion = "2.9.0"
     val coilVersion = "2.5.0"
     val dataStoreVersion = "1.1.1"
     val permissionsVersion = "0.25.1"
-    val composeBomVersion = "2024.08.00"
+    val composeBomVersion = "2024.12.01"
     val roomVersion = "2.6.1"
 
-    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation(platform("androidx.compose:compose-bom:$composeBomVersion"))
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.tv:tv-foundation:1.0.0-alpha07") //пока не трогать, много чего экспериментального
-    implementation("androidx.tv:tv-material:1.0.0-alpha07") //пока не трогать, много чего экспериментального
-    implementation("androidx.media3:media3-extractor:1.4.0")
-    implementation("androidx.compose.material3:material3:1.2.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
-    implementation("androidx.activity:activity-compose:1.9.1")
+    implementation("androidx.tv:tv-foundation:1.0.0-alpha11")
+    implementation("androidx.tv:tv-material:1.0.0")
+    implementation("androidx.media3:media3-extractor:1.5.1")
+    implementation("androidx.compose.material3:material3:1.3.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+    implementation("androidx.activity:activity-compose:1.9.3")
 
     //Analytics
     implementation("io.appmetrica.analytics:analytics:7.0.0")
@@ -95,7 +95,7 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     //Navigation
-    implementation("io.github.raamcosta.compose-destinations:animations-core:$navigationVersion")
+    implementation("io.github.raamcosta.compose-destinations:core:$navigationVersion")
     ksp("io.github.raamcosta.compose-destinations:ksp:$navigationVersion")
 
     //Retrofit
@@ -104,7 +104,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
 
     //Serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     //Jsoup
     implementation ("org.jsoup:jsoup:1.17.2")

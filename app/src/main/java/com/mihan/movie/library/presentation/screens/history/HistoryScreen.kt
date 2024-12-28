@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
@@ -14,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,31 +27,27 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.tv.foundation.lazy.list.TvLazyColumn
-import androidx.tv.foundation.lazy.list.items
-import androidx.tv.foundation.lazy.list.rememberTvLazyListState
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.mihan.movie.library.R
 import com.mihan.movie.library.domain.models.VideoHistoryModel
-import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
-import com.mihan.movie.library.presentation.screens.destinations.DetailVideoScreenDestination
+import com.mihan.movie.library.presentation.navigation.AppNavGraph
 import com.mihan.movie.library.presentation.ui.size10dp
 import com.mihan.movie.library.presentation.ui.size16dp
 import com.mihan.movie.library.presentation.ui.size20sp
 import com.mihan.movie.library.presentation.ui.size8dp
 import com.mihan.movie.library.presentation.ui.view.ButtonDelete
+import com.mihan.movie.library.presentation.ui.view.ConfirmDeleteDialog
 import com.mihan.movie.library.presentation.ui.view.EmptyListPlaceholder
 import com.mihan.movie.library.presentation.ui.view.PosterView
 import com.mihan.movie.library.presentation.ui.view.RectangleButton
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.generated.destinations.DetailVideoScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
 private const val SELECTED_BACKGROUND_ALPHA = 0.1f
 
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Destination(style = AnimatedScreenTransitions::class)
+@Destination<AppNavGraph>
 @Composable
 fun HistoryScreen(
     historyViewModel: HistoryViewModel = hiltViewModel(),
@@ -55,6 +55,8 @@ fun HistoryScreen(
 ) {
     val historyScreenState by historyViewModel.historyScreenState.collectAsStateWithLifecycle()
     val baseUrl by historyViewModel.baseUrl.collectAsStateWithLifecycle()
+    var deleteDialogState by rememberSaveable { mutableStateOf(false) }
+    var historyModel by remember { mutableStateOf<VideoHistoryModel?>(null) }
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -64,11 +66,21 @@ fun HistoryScreen(
         Content(
             historyList = historyScreenState.data,
             onButtonWatchClicked = { navigator.navigate(DetailVideoScreenDestination("$baseUrl${it.videoPageUrl}")) },
-            onItemDeleteClicked = historyViewModel::onButtonDeleteClicked
+            onItemDeleteClicked = { model ->
+                historyModel = model
+                deleteDialogState = true
+            }
         )
         if (historyScreenState.isLoading) CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
     }
-
+    ConfirmDeleteDialog(
+        showDialogState = deleteDialogState,
+        onButtonYesPressed = {
+            deleteDialogState = false
+            historyModel?.let { historyViewModel.onButtonDeleteClicked(it) }
+        },
+        onButtonNoPressed = { deleteDialogState = false },
+    )
     LaunchedEffect(key1 = Unit) {
         historyViewModel.getHistoryList()
     }
@@ -81,9 +93,9 @@ private fun Content(
     onItemDeleteClicked: (VideoHistoryModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val state = rememberTvLazyListState()
+    val state = rememberLazyListState()
     val focusRequester = remember { FocusRequester() }
-    TvLazyColumn(
+    LazyColumn(
         state = state,
         modifier = modifier
             .fillMaxSize()
@@ -98,12 +110,14 @@ private fun Content(
         }
     }
     LaunchedEffect(key1 = historyList) {
-        if (historyList.isNotEmpty())
-            focusRequester.requestFocus()
+        if (historyList.isNotEmpty()) {
+            runCatching {
+                focusRequester.requestFocus()
+            }
+        }
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun HistoryItem(
     videoHistoryModel: VideoHistoryModel,

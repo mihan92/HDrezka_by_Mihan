@@ -63,7 +63,7 @@
     <string name="logout_title">Выйти</string>
     <string name="login_greeting">Вы авторизованы как %1$s</string>
     <string name="empty_fields_error_message">Поля логина и пароля не должны быть пустыми</string>
-    <string name="email_title">email</string>
+    <string name="email_or_login_title">email или login</string>
     <string name="password_title">password</string>
     <string name="new_series">Новые серии</string>
     <string name="new_series_screen_placeholder">Новых серий пока нет</string>
@@ -75,6 +75,9 @@
     <string name="understand_title">ПОНЯТНО</string>
     <string name="error_msg_cant_process_episode">Что-то пошло не так.. Не могу обработать этот сезон или эпизод</string>
     <string name="dear_users_title">Уважаемые пользователи!</string>
-    <string name="main_screen_placeholder_message">Данные для просмотра недоступны. Возможно, текущее зеркало доступно только авторизованным пользователям. Авторизуйтесь в настройках приложения.</string>
+    <string name="main_screen_placeholder_message">Данные для просмотра недоступны. Для просмотра контента авторизуйтесь в настройках приложения.</string>
     <string name="telegram_qr_code_title">Telegram канал приложения. Кликните для открытия QR кода</string>
+    <string name="title_delete_question">Вы действительно хотите удалить?</string>
+    <string name="yes_title">Да</string>
+    <string name="no_title">Нет</string>
 </resources>

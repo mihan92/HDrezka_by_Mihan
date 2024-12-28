@@ -5,17 +5,17 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.tv.material3.ExperimentalTvMaterial3Api
+import androidx.compose.ui.Modifier
 import androidx.tv.material3.MaterialTheme
 import com.mihan.movie.library.presentation.ui.size10dp
 import com.mihan.movie.library.presentation.ui.theme.dialogBgColor
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun DialogButton(
     title: String,
     isEnabled: Boolean,
     onButtonClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     TextButton(
         enabled = isEnabled,
@@ -24,7 +24,8 @@ fun DialogButton(
         colors = ButtonDefaults.buttonColors(
             contentColor = MaterialTheme.colorScheme.onBackground,
             containerColor = dialogBgColor
-        )
+        ),
+        modifier = modifier
     ) {
         Text(text = title)
     }

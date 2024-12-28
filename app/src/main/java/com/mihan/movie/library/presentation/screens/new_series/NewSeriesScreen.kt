@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
@@ -23,16 +26,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.tv.foundation.lazy.list.TvLazyColumn
-import androidx.tv.foundation.lazy.list.items
-import androidx.tv.foundation.lazy.list.rememberTvLazyListState
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.mihan.movie.library.R
 import com.mihan.movie.library.domain.models.NewSeriesModel
-import com.mihan.movie.library.presentation.animation.AnimatedScreenTransitions
-import com.mihan.movie.library.presentation.screens.destinations.DetailVideoScreenDestination
+import com.mihan.movie.library.presentation.navigation.AppNavGraph
 import com.mihan.movie.library.presentation.ui.size14sp
 import com.mihan.movie.library.presentation.ui.size16dp
 import com.mihan.movie.library.presentation.ui.size20sp
@@ -42,12 +40,12 @@ import com.mihan.movie.library.presentation.ui.view.EmptyListPlaceholder
 import com.mihan.movie.library.presentation.ui.view.PosterView
 import com.mihan.movie.library.presentation.ui.view.RectangleButton
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.generated.destinations.DetailVideoScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
 private const val SELECTED_BACKGROUND_ALPHA = 0.1f
 
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Destination(style = AnimatedScreenTransitions::class)
+@Destination<AppNavGraph>
 @Composable
 fun NewSeriesScreen(
     viewModel: NewSeriesViewModel = hiltViewModel(),
@@ -80,9 +78,9 @@ private fun Content(
     onButtonDeleteClicked: (NewSeriesModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val state = rememberTvLazyListState()
+    val state = rememberLazyListState()
     val focusRequester = remember { FocusRequester() }
-    TvLazyColumn(
+    LazyColumn(
         state = state,
         modifier = modifier
             .fillMaxSize()
@@ -97,12 +95,14 @@ private fun Content(
         }
     }
     LaunchedEffect(key1 = seriesList) {
-        if (seriesList.isNotEmpty())
-            focusRequester.requestFocus()
+        if (seriesList.isNotEmpty()) {
+            runCatching {
+                focusRequester.requestFocus()
+            }
+        }
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun RemoteHistoryItem(
     newSeriesModel: NewSeriesModel,
